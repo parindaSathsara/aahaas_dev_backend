@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Customer;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\MessageBag;
 use Illuminate\Validation\ValidationException;
@@ -11,6 +12,16 @@ use Illuminate\Support\Facades\Validator;
 
 class CustomerController extends Controller
 {
+
+    public $customer;
+    public $user;
+
+    public function __construct()
+    {
+        $this->customer = new Customer();
+        $this->user = new User();
+    }
+
     /* Fetch all the customer Data function starting */
     public function index()
     {
@@ -183,5 +194,23 @@ class CustomerController extends Controller
             'status' => 200,
             'customer_data' => $cus_Data
         ]);
+    }
+
+    //Deactivate customer account
+    public function deactivateCustomerAccount($id)
+    {
+        try {
+
+            $response = $this->customer->deactCustomerAccount($id);
+            $response2 = $this->user->deactUserAccount($id);
+
+            return response([
+                'status' => 200,
+                'res_one' => $response,
+                'res_two' => $response2
+            ]);
+        } catch (\Exception $ex) {
+            throw $ex;
+        }
     }
 }

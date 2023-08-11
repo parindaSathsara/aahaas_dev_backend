@@ -144,6 +144,7 @@ Route::group(['middleware' => 'api'], function () {
     Route::get('/get-customer-data-byid/{id}', [CustomerController::class, 'getCustomerDataById']);
 
     Route::post('/update-customer-profile', [CustomerController::class, 'updateCustomerProfile']);
+    Route::post('/deactivate-customer-profile/{id}', [CustomerController::class, 'deactivateCustomerAccount']);
 
 
 

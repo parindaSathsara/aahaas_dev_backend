@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
 use Rappasoft\LaravelAuthenticationLog\Traits\AuthenticationLoggable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -13,6 +14,8 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, AuthenticationLoggable;
+
+    protected $table = 'users';
 
     /**
      * The attributes that are mass assignable.
@@ -53,4 +56,16 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    //deactivate user account
+    public function deactUserAccount($id)
+    {
+        try {
+
+            DB::table('users')->where('id',$id)->update(['user_status'=> 'Deactivate']);
+            
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
 }
