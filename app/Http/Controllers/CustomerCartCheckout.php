@@ -427,9 +427,10 @@ class CustomerCartCheckout extends Controller
                 ->join('tbl_maincategory', 'tbl_checkouts.main_category_id', '=', 'tbl_maincategory.id')
                 ->join('edu_tbl_booking', 'tbl_checkouts.related_order_id', '=', 'edu_tbl_booking.booking_id')
                 ->join('edu_tbl_education', 'edu_tbl_booking.education_id', '=', 'edu_tbl_education.education_id')
-                ->join('edu_tbl_rate', 'edu_tbl_booking.rate_id', '=', 'edu_tbl_rate.edu_id')
+                ->join('edu_tbl_rate', 'edu_tbl_booking.education_id', '=', 'edu_tbl_rate.edu_id')
                 ->join('edu_tbl_sessions', 'edu_tbl_booking.session_id', '=', 'edu_tbl_sessions.session_id')
                 ->select(
+                    // '*'
                     'tbl_checkouts.checkout_id AS Order Id',
                     'tbl_checkouts.delivery_address AS DeliveryAddress',
                     'tbl_maincategory.maincat_type AS MainCat',
@@ -448,6 +449,8 @@ class CustomerCartCheckout extends Controller
                     'tbl_checkouts.education_id AS EduId',
                     'tbl_checkouts.currency AS Currency',
                 )->get();
+
+            // return $QueryEdu;
 
             // return $QueryEdu;
 
@@ -506,6 +509,8 @@ class CustomerCartCheckout extends Controller
                 'user_contact' => $UserContact, 'orderid' => $OrderId, 'categories' => $catArray, 'essData' => $QueryEss, 'lsData' => $QueryLS,
                 'eduData' => $QueryEdu, 'hotelData' => $QueryHotel, 'orderDate' => $CheckoutDate, 'payType' => $PaymentType, 'total_amount' => $TotalAmount, 'paid_amount' => $PaidAmount, 'bal_amount' => $BalanceAmount, 'currency_' => $Currency, 'deli_charge' => $DeliCharge
             ];
+
+            // return $QueryEdu;
 
             // return view('Mails.CartCheckout', $dataset);
 

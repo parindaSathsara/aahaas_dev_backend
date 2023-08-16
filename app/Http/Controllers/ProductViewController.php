@@ -168,7 +168,7 @@ class ProductViewController extends Controller
                     // 'currency' => $getDistanceData[0]->currency,
                 ]);
             }
-        } catch (\Throwable $ex) {
+        } catch (\Exception $ex) {
             return $ex->getMessage();
         }
     }

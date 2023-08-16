@@ -22,7 +22,7 @@
     </div>
 
     <div class="button__Container" style="text-align:center;">
-        <a href="https://aahaas.appletechlabs.com/userreset/{{$token}}" class="reset__Btn" id="reset__Btn" style="border: none;
+        <a href="https://frontend.aahaas.com/userreset/{{$token}}" class="reset__Btn" id="reset__Btn" style="border: none;
         border-radius: 0;
         cursor: pointer;
         padding: 15px;

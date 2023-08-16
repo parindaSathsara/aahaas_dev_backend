@@ -463,7 +463,7 @@ class ProductCartController extends Controller
                 ->leftJoin('tbl_essentials_preorder', 'tbl_customer_carts.listing_pre_id', '=', 'tbl_essentials_preorder.essential_pre_order_id')
                 ->leftJoin('tbl_product_delivery_rates', 'tbl_essentials_preorder.deliveryRateID', '=', 'tbl_product_delivery_rates.delivery_rate_id')
                 ->leftJoin('tbl_product_listing', 'tbl_essentials_preorder.essential_listing_id', '=', 'tbl_product_listing.id')
-                ->leftJoin('tbl_product_details', 'tbl_product_listing.id', '=', 'tbl_product_details.product_detail_id')
+                ->leftJoin('tbl_product_details', 'tbl_product_listing.id', '=', 'tbl_product_details.listing_id')
                 ->leftJoin('tbl_listing_inventory', 'tbl_essentials_preorder.essential_inventory_id', '=', 'tbl_listing_inventory.id')
                 ->leftJoin('tbl_product_listing_rates', 'tbl_listing_inventory.id', '=', 'tbl_product_listing_rates.inventory_id')
                 ->leftJoin('tbl_listing_discount', 'tbl_product_listing.id', '=', 'tbl_listing_discount.listing_id')
@@ -475,8 +475,10 @@ class ProductCartController extends Controller
                 ->leftJoin('edu_tbl_education', 'edu_tbl_booking.education_id', '=', 'edu_tbl_education.education_id')
                 ->leftJoin('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')
                 ->leftJoin('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
-                ->leftJoin('edu_tbl_rate', 'edu_tbl_education.education_id', '=', 'edu_tbl_rate.edu_id')
+                //->leftJoin('edu_tbl_rate', 'edu_tbl_education.education_id', '=', 'edu_tbl_rate.edu_id')
+                ->leftJoin('edu_tbl_rate', 'edu_tbl_booking.rate_id', '=', 'edu_tbl_rate.id') //Added newly
                 ->leftJoin('edu_tbl_discount', 'edu_tbl_rate.id', '=', 'edu_tbl_discount.edu_rate_id')
+                //->leftJoin('edu_tbl_rate', 'edu_tbl_booking.rate_id', '=', 'edu_tbl_rate.id')
 
 
                 ->select(

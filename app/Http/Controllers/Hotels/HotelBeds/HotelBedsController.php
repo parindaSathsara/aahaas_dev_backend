@@ -692,4 +692,11 @@ class HotelBedsController extends Controller
             throw $th;
         }
     }
+
+    public function getHotelFacilities()
+    {
+        $response = $this->hotel_beds->getHotelFacilities();
+
+        return $response;
+    }
 }

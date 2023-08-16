@@ -83,7 +83,7 @@ class NewPaymentIPG extends Model
         $CheckoutArray['apiOperation'] = "INITIATE_CHECKOUT";
         $CheckoutArray['interaction']['merchant']['name'] = 'Apple Holidays';
         $CheckoutArray['interaction']['operation'] = "PURCHASE";
-        $CheckoutArray['interaction']['returnUrl'] = "http://localhost:8000/main/checkout-order-payment-status/" . $orderid;
+        $CheckoutArray['interaction']['returnUrl'] = "https://frontend.aahaas.com/main/checkout-order-payment-status/" . $orderid;
         // $CheckoutArray['interaction']['returnUrl'] = "http://192.168.4.117:8000/checkout-order-payment-status-mobile/" . $orderid;
         $CheckoutArray['interaction']['displayControl']['billingAddress'] = 'HIDE';
         $CheckoutArray['interaction']['displayControl']['customerEmail'] = "HIDE";

@@ -397,6 +397,8 @@ Route::group(['middleware' => 'api'], function () {
     Route::get('/get-user-currency', [HotelBedsController::class, 'getBookingsById']);
 
     Route::get('/get-hotel-details-by-user-current-loc/{countrycode}', [HotelBedsController::class, 'availabilityBasedOnCurrentLocation']);
+    Route::get('/get-hotelfacility-hotelbeds', [HotelBedsController::class, 'getHotelFacilities']);
+
 
 
     /* ------------------------------------------------------------------------------- */

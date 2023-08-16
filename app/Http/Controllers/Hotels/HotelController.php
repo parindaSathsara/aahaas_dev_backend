@@ -13,6 +13,13 @@ use Illuminate\Support\Facades\DB;
 
 class HotelController extends Controller
 {
+    public $hotelInven;
+
+    public function __construct()
+    {
+        $this->hotelInven = new Hotel();
+    }
+
     /* Fetch all the hotel data from the db function starting */
     public function index()
     {
@@ -134,13 +141,18 @@ class HotelController extends Controller
             // ->groupBy('tbl_hotel_aahaas_services.service_type_id')
             ->get();
 
+        $InvenData = $this->hotelInven->getRoomTypesById($id);
+
+        // return $InvenData;
+
 
         return response()->json([
             'status' => 200,
             'hotel_by_id' => $hotelById,
             'mealType' => $mealType,
             'serviceType' => $serviceType,
-            'service' => $servicesList
+            'service' => $servicesList,
+            'room_types' => $InvenData
         ]);
     }
 

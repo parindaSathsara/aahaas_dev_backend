@@ -5,6 +5,7 @@ namespace App\Models\Hotels;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
 
 class Hotel extends Model
@@ -67,6 +68,19 @@ class Hotel extends Model
             ]);
         } catch (\Exception $ex) {
             throw $ex;
+        }
+    }
+
+    //ROOMS BY HOTEL LOCAL
+    public function getRoomTypesById($id)
+    {
+        try {
+
+            $QueryData = DB::table('tbl_hotel_inventory')->where('hotel_id', $id)->get();
+
+            return $QueryData;
+        } catch (\Throwable $th) {
+            throw $th;
         }
     }
 }

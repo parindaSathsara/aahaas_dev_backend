@@ -1140,6 +1140,17 @@ class HotelBeds extends Model
 
             $EndURL .= http_build_query($Dataset);
 
+
+            $response = Http::withHeaders($this->getHeader())->get($EndURL)->json();
+
+            Cache::add('hotel-data', $response);
+
+            return response([
+                'status' => 200,
+                'type' => 'caching',
+                'hotel_data' => $response
+            ]);
+
             if (Cache::has('hotel-data')) {
                 return response([
                     'status' => 200,
@@ -1162,5 +1173,18 @@ class HotelBeds extends Model
 
             throw $th;
         }
+    }
+
+    public function getHotelFacilities()
+    {
+        $URL_1 = 'https://api.test.hotelbeds.com/hotel-content-api/1.0/types/facilitygroups?fields=all&language=ENG&from=1&to=100&useSecondaryLanguage=True';
+
+        $response_1 = Http::withHeaders($this->getHeader())->get($URL_1)->json();
+
+        return response()->json([
+            'status' => 200,
+            'facilities' => $response_1,
+
+        ]);
     }
 }
