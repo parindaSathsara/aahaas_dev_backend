@@ -165,6 +165,7 @@ class LifeStylesController extends Controller
                 ->select(
                     DB::raw("min(tbl_lifestyle_rates.adult_rate) AS adult_rate"),
                     DB::raw("min(tbl_lifestyle_rates.child_rate) AS child_rate"),
+                    DB::raw("max(tbl_lifestyle_inventory.inventory_date) AS inventory_date"),
                     'tbl_lifestyle.lifestyle_city',
                     'tbl_lifestyle.lifestyle_attraction_type',
                     'tbl_lifestyle.lifestyle_name',
@@ -172,7 +173,7 @@ class LifeStylesController extends Controller
                     'tbl_lifestyle.image',
                     'tbl_lifestyle.lifestyle_id',
                     'tbl_lifestyle_inventory.pickup_location',
-                    'tbl_lifestyle_inventory.inventory_date',
+                    // 'tbl_lifestyle_inventory.inventory_date',
                     'tbl_lifestyle_inventory.pickup_time',
                     'tbl_lifestyle_rates.currency',
                     'tbl_lifestyle_discount.lifestyle_inventory_id',
