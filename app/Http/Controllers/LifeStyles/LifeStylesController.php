@@ -249,7 +249,6 @@ class LifeStylesController extends Controller
                 ->groupBy('tbl_lifestyle.lifestyle_id')
                 ->orderBy('tbl_lifestyle_inventory.inventory_date')
 
-
                 ->where($whereArray)
 
                 ->selectRaw("{$har} AS distance")
