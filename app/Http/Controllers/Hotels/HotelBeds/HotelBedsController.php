@@ -681,11 +681,11 @@ class HotelBedsController extends Controller
     // *************** ############################################### *********************
 
     //Getting data based on currenct location
-    public function availabilityBasedOnCurrentLocation($CountryCode)
+    public function availabilityBasedOnCurrentLocation($latitude, $longitude)
     {
         try {
 
-            $response = $this->hotel_beds->fetchHotelsBedsBasedOnCurrentLocation($CountryCode);
+            $response = $this->hotel_beds->fetchHotelsBedsBasedOnCurrentLocation($latitude, $longitude);
 
             return $response;
         } catch (\Throwable $th) {

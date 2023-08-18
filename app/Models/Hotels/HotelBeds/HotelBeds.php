@@ -1086,6 +1086,66 @@ class HotelBeds extends Model
         }
     }
 
+    //get hotel beds dataset based on customer current location
+    public function fetchHotelsBedsBasedOnCurrentLocation($latitude, $longitude)
+    {
+        try {
+
+            $DestinationArray = [];
+
+            ini_set('max_execution_time', 360);
+
+            $todayDate = Carbon::now()->format('Y-m-d');
+            $_30DaysAfterDate = date('Y-m-d', strtotime('+1 days', strtotime($todayDate)));
+            $checkInDate = $todayDate;
+            $checkOutDate = $_30DaysAfterDate;
+
+            $DestinationArray['stay']['checkIn'] = $checkInDate;
+            $DestinationArray['stay']['checkOut'] = $checkOutDate;
+            $DestinationArray['occupancies']['rooms'] = 1;
+            $DestinationArray['occupancies']['adults'] = 2;
+            $DestinationArray['occupancies']['children'] = 0;
+            $DestinationArray['geolocation']['latitude'] = (float)$latitude;
+            $DestinationArray['geolocation']['longitude'] = (float)$longitude;
+            $DestinationArray['geolocation']['radius'] = 20;
+            $DestinationArray['geolocation']['unit'] = 'km';
+
+            $SubArray = [];
+
+            $SubArray['stay']['checkIn'] = $DestinationArray['stay']['checkIn'];
+            $SubArray['stay']['checkOut'] = $DestinationArray['stay']['checkOut'];
+            $SubArray['occupancies'] = [$DestinationArray['occupancies']];
+            $SubArray['geolocation']['latitude'] = $DestinationArray['geolocation']['latitude'];
+            $SubArray['geolocation']['longitude'] = $DestinationArray['geolocation']['longitude'];
+            $SubArray['geolocation']['radius'] = $DestinationArray['geolocation']['radius'];
+            $SubArray['geolocation']['unit'] = $DestinationArray['geolocation']['unit'];
+
+            $response = Http::withHeaders($this->getHeader())
+                ->post('https://api.test.hotelbeds.com/hotel-api/1.0/hotels', $SubArray)->json();
+
+            // return $response;
+
+            if ($response['hotels']['total'] == 0) {
+                return response([
+                    'status' => 404,
+                    'data_set' => 0
+                ]);
+            } else {
+
+                return $this->filterImagesForDestinationWiseHotels($response['hotels']);
+                // return response([
+                //     'status' => 200,
+                //     'data_set' => $response
+                // ]);
+            }
+        } catch (\Throwable $th) {
+
+            throw $th;
+        }
+    }
+
+    // ************** ############### *****************
+
     public function filterImagesForDestinationWiseHotels($response)
     {
         try {
@@ -1119,61 +1179,6 @@ class HotelBeds extends Model
     }
 
     // ************** ############### *****************
-
-    //get hotel beds dataset based on customer current location
-    public function fetchHotelsBedsBasedOnCurrentLocation($country_code)
-    {
-        try {
-
-            ini_set('max_execution_time', 360);
-            $EndURL = 'https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels?';
-
-            //https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels?fields=all&countryCodes=LK&language=ENG&from=1&useSecondaryLanguage=false&to=100
-            //https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels?fields=all&countryCodes=LK&language=ENG&from=1&useSecondaryLanguage=false&to=100
-
-            $Dataset['fields'] = 'all';
-            $Dataset['countryCode'] = $country_code;
-            $Dataset['language'] = 'ENG';
-            $Dataset['from'] = 1;
-            $Dataset['useSecondaryLanguage'] = 'false';
-            $Dataset['to'] = 100;
-
-            $EndURL .= http_build_query($Dataset);
-
-
-            $response = Http::withHeaders($this->getHeader())->get($EndURL)->json();
-
-            Cache::add('hotel-data', $response);
-
-            return response([
-                'status' => 200,
-                'type' => 'caching',
-                'hotel_data' => $response
-            ]);
-
-            if (Cache::has('hotel-data')) {
-                return response([
-                    'status' => 200,
-                    'type' => 'cache',
-                    'hotel_data' => Cache::get('hotel-data')
-                ]);
-            } else {
-
-                $response = Http::withHeaders($this->getHeader())->get($EndURL)->json();
-
-                Cache::add('hotel-data', $response);
-
-                return response([
-                    'status' => 200,
-                    'type' => 'caching',
-                    'hotel_data' => Cache::get('hotel-data')
-                ]);
-            }
-        } catch (\Throwable $th) {
-
-            throw $th;
-        }
-    }
 
     public function getHotelFacilities()
     {

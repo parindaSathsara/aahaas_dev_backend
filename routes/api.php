@@ -306,9 +306,9 @@ Route::group(['middleware' => 'api'], function () {
     Route::post('/create_hotel_inventory_new', [HotelInventoryController::class, 'createNewHotelInventory']);
     Route::get('/fetch_all_inventories', [HotelInventory::class, 'fetchAllInventories']);
 
-    
-    
-    
+
+
+
     /* RoomRate Controller Routes ----------  */
     Route::get('/get-roomrate-data', [RoomRateController::class, 'index']);
     Route::post('/create-new-roomrate', [RoomRateController::class, 'createNewRoomRate']);
@@ -316,7 +316,7 @@ Route::group(['middleware' => 'api'], function () {
     Route::post('/update-roomrate-data/{id}', [RoomRateController::class, 'updateRoomRateData']);
     Route::get('/fetch-roomrate-hotel', [RoomRateController::class, 'getRoomRateDataWithHotel']);
     Route::post('/create_new_room_rate', [RoomRateController::class, 'createNewHotelRoomRate']);
-    
+
     /* ServiceRate Controller Routes ----------  */
     Route::get('/get-servicerate-data', [ServiceRateController::class, 'index']);
     Route::post('/create-new-servicerate', [ServiceRateController::class, 'createNewServiceRate']);
@@ -396,7 +396,7 @@ Route::group(['middleware' => 'api'], function () {
 
     Route::get('/get-user-currency', [HotelBedsController::class, 'getBookingsById']);
 
-    Route::get('/get-hotel-details-by-user-current-loc/{countrycode}', [HotelBedsController::class, 'availabilityBasedOnCurrentLocation']);
+    Route::get('/get-hotel-details-by-user-current-loc/{lat}/{lon}', [HotelBedsController::class, 'availabilityBasedOnCurrentLocation']);
     Route::get('/get-hotelfacility-hotelbeds', [HotelBedsController::class, 'getHotelFacilities']);
 
 
@@ -478,7 +478,7 @@ Route::group(['middleware' => 'api'], function () {
     Route::get('/get-all-life-styles/{category1}/{category2}/{category3}/{category4}/{latlon}/{radius}/{limit}', [LifeStylesController::class, 'get_lifestyles']);
 
     Route::post('/add-new-life-styles-booking', [LifeStyleBookingController::class, 'addNewLifeStyleBooking']);
-    
+
     Route::post('/uploadexcel', [ExcelController::class, 'uploadExcel']);
 
     /* ####################################### */
