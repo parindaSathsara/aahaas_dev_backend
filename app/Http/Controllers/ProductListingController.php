@@ -409,7 +409,12 @@ class ProductListingController extends Controller
                 // ->join('tbl_discount_types', 'tbl_discount.discount_type_id', '=', 'tbl_discount_types.id')
                 // ->join('tbl_product_details', 'tbl_product_listing.id', '=', 'tbl_product_details.listing_id')
                 ->join('tbl_product_details', 'tbl_product_listing.id', '=', 'tbl_product_details.listing_id')
-                ->join('tbl_product_listing_rates', 'tbl_listing_inventory.id', '=', 'tbl_product_listing_rates.inventory_id')
+                // ->join('tbl_product_listing_rates', 'tbl_listing_inventory.id', '=', 'tbl_product_listing_rates.inventory_id','inner','tbl_product_listing_rates.qty==0')
+
+                ->join("tbl_product_listing_rates",function($join){
+                    $join->on("tbl_listing_inventory.id","=","tbl_product_listing_rates.inventory_id")->where('tbl_product_listing_rates.qty', '>', 0);;
+                })
+
                 ->leftJoin('tbl_listing_discount', 'tbl_product_listing.id', '=', 'tbl_listing_discount.listing_id')
 
                 ->select(
