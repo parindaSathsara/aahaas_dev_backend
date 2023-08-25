@@ -445,6 +445,7 @@ Route::group(['middleware' => 'api'], function () {
     Route::get('/apple_booking_confirm_sendemail__applehotels/{id}', [BookingController::class, 'sendConfirmationEmail']);
     Route::post('/apple_booking_cancellation__applehotels/{id}', [BookingController::class, 'bookingCancellationRequest']);
     Route::post('/apple_booking_ammend__applehotels/{id}', [BookingController::class, 'ammendBooking']);
+    Route::post('/update_hotels_status_aahaas', [BookingController::class, 'validateHotelBooking']);
 
 
     /* ///////////////////////////////////////////////////////////////////////////////////////////// */

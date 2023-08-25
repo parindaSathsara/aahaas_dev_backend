@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Hotels\AppleHolidays;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customer\MainCheckout;
+use App\Models\Hotels\Hotel;
 use App\Models\Hotels\HotelResevation;
 use App\Models\Hotels\HotelResevationChildDetail;
 use App\Models\Hotels\HotelResevationPayment;
@@ -23,6 +25,19 @@ use function PHPUnit\Framework\isNull;
 
 class BookingController extends Controller
 {
+
+    public $maincheckout;
+    public $prebooking;
+    public $hotelreservation;
+    public $hotel;
+
+    public function __construct()
+    {
+        $this->maincheckout = new MainCheckout();
+        $this->prebooking = new HotelsPreBookings();
+        $this->hotelreservation = new HotelResevation();
+        $this->hotel = new Hotel();
+    }
     // ***** Checking Availability on Apple Hotels ***** //
     public function checkingAvailability(Request $request, $id)
     {
@@ -128,14 +143,16 @@ class BookingController extends Controller
                 ->where('tbl_hotel.id', $id)
                 ->where('tbl_hotel_room_rate.travel_startdate', '<=', $CheckIn)
                 ->where('tbl_hotel_inventory.max_adult_occupancy', '<=', $AdultCount)
-                ->where('tbl_hotel_room_rate.child_withno_bed_age', '=', '4-5')->where('tbl_hotel_inventory.room_category', $RoomCategory)
-                ->join('tbl_hotel_room_rate', 'tbl_hotel.id', '=', 'tbl_hotel_room_rate.hotel_id')->join('tbl_hotel_inventory', 'tbl_hotel.id', '=', 'tbl_hotel_inventory.hotel_id')
+                // ->where('tbl_hotel_room_rate.child_withno_bed_age', '=', '4-5')
+                ->where('tbl_hotel_inventory.room_category', $RoomCategory)
+                ->join('tbl_hotel_room_rate', 'tbl_hotel.id', '=', 'tbl_hotel_room_rate.hotel_id')
+                ->join('tbl_hotel_inventory', 'tbl_hotel.id', '=', 'tbl_hotel_inventory.hotel_id')
                 ->select(
                     'tbl_hotel_room_rate.*',
 
                 )->orderBy('tbl_hotel_room_rate.special_rate', 'DESC')->get();
 
-
+            // return $additionalRates;
             $sql_query = [];
             if ($inventory_query > 0) {
 
@@ -147,8 +164,10 @@ class BookingController extends Controller
                     // ->where('tbl_hotel_room_rate.meal_plan', '=', $MealType)
                     // ->where('tbl_hotel_room_rate.service', '=', $serviceTypeList[0])
                     // ->where('tbl_hotel_room_rate.service_type', '=', $ServiceType)
-                    ->where('tbl_hotel_room_rate.child_withno_bed_age', '=', '4-5')->where('tbl_hotel_inventory.room_category', $RoomCategory)
-                    ->join('tbl_hotel_room_rate', 'tbl_hotel.id', '=', 'tbl_hotel_room_rate.hotel_id')->join('tbl_hotel_inventory', 'tbl_hotel.id', '=', 'tbl_hotel_inventory.hotel_id')
+                    // ->where('tbl_hotel_room_rate.child_withno_bed_age', '=', '4-5')
+                    ->where('tbl_hotel_inventory.room_category', $RoomCategory)
+                    ->join('tbl_hotel_room_rate', 'tbl_hotel.id', '=', 'tbl_hotel_room_rate.hotel_id')
+                    ->join('tbl_hotel_inventory', 'tbl_hotel.id', '=', 'tbl_hotel_inventory.hotel_id')
                     ->select(
                         'tbl_hotel.hotel_name',
                         'tbl_hotel_room_rate.travel_startdate',
@@ -500,567 +519,333 @@ class BookingController extends Controller
 
     public function validateHotelBooking(Request $request)
     {
-        $id = $request->input('hotels_pre_id');
-        $status = $request->input('status');
-
+        $id = $request['hotels_pre_id'];
+        $status = $request['status'];
+        $currency = $request['currency'];
+        $oid = $request['oid'];
         // return $id;
-        HotelsPreBookings::where('booking_id', $id)->update(['cartStatus' => $status]);
 
-        $hotelPreBooking = DB::table('tbl_hotels_pre_booking')->where('booking_id', '=', $id)->get();
+        $this->prebooking->updateCartStatus($id, $status);
 
-        $hotelDataSet = $hotelPreBooking[0];
+        // HotelsPreBookings::where('booking_id', $id)->update(['cartStatus' => $status]);
+        //DB::table('tbl_hotels_pre_booking')->where('booking_id', '=', $id)->get();
+        $hotelPreBooking = $this->prebooking->getPreBookingDataById($id);
 
-        $rateKeyData = $hotelDataSet->rate_key;
+        if (count($hotelPreBooking) == 0) {
+            return response([
+                'status' => 400
+            ]);
+        } else {
 
-        $rateKeyData = json_decode($rateKeyData);
+            $hotelDataSet = $hotelPreBooking[0];
 
-        $id = $request->input('hotels_pre_id');
-        $status = $request->input('status');
+            $rateKeyData = json_decode($hotelDataSet->rate_key);
+            $refId = $hotelDataSet->ref_id;
+            $totAmnt = $hotelDataSet->totalFare;
+            $uid = $hotelDataSet->userID;
 
-        // return $id;
-        HotelsPreBookings::where('booking_id', $id)->update(['cartStatus' => $status]);
+            $this->maincheckout->checkoutOrderHotel($oid, $refId, $totAmnt, $currency, $uid, $id);
 
-        $hotelPreBooking = DB::table('tbl_hotels_pre_booking')->where('booking_id', '=', $id)->get();
-
-        $hotelDataSet = $hotelPreBooking[0];
-
-        $rateKeyData = $hotelDataSet->rate_key;
-
-        $rateKeyData = json_decode($rateKeyData);
-
-
-
-        $request = $rateKeyData;
-
-
-        return response()->json([
-            'status' => 200,
-            'hotelAahaas' => $this->confirmCartBookingApple($request, $hotelDataSet->ref_id)
-        ]);
+            return $this->confirmBookingApple($rateKeyData, $refId, $currency, $id);
+            // return $this->confirmCartBookingApple($rateKeyData, $refId);
+        }
     }
 
-    public function confirmCartBookingApple($request, $id)
-    {
+    // public function confirmCartBookingApple($request, $id)
+    // {
 
-        // return $request;
-
-        $sql_query = DB::table('tbl_hotel')->where('tbl_hotel.id', $id)
-            ->join('tbl_hotel_terms_conditions', 'tbl_hotel.id', '=', 'tbl_hotel_terms_conditions.hotel_id')
-            ->join('tbl_hotel_vendor', 'tbl_hotel.id', '=', 'tbl_hotel_vendor.hotel_id')
-            ->select('tbl_hotel.hotel_name', 'tbl_hotel.hotel_address', 'tbl_hotel_vendor.hotel_email', 'tbl_hotel_terms_conditions.cancellation_deadline AS Days_Count')->first();
+    //     $sql_query = DB::table('tbl_hotel')->where('tbl_hotel.id', $id)
+    //         ->join('tbl_hotel_terms_conditions', 'tbl_hotel.id', '=', 'tbl_hotel_terms_conditions.hotel_id')
+    //         ->join('tbl_hotel_vendor', 'tbl_hotel.id', '=', 'tbl_hotel_vendor.hotel_id')
+    //         ->select('tbl_hotel.hotel_name', 'tbl_hotel.hotel_address', 'tbl_hotel_vendor.hotel_email', 'tbl_hotel_terms_conditions.cancellation_deadline AS Days_Count')->first();
 
 
+    //     return $request;
 
-        $current_timestamp = Carbon::now()->timestamp;
-        $randNumber = rand(2, 50);
-        $bookingRef = "AHBK_" . $current_timestamp . "_" . $randNumber;
+    //     $current_timestamp = Carbon::now()->timestamp;
+    //     $randNumber = rand(2, 50);
+    //     $bookingRef = "AHBK_" . $current_timestamp . "_" . $randNumber;
 
-        // return $request->rate_key;
-        $rate_Key = $request->rate_key;
-        $CheckIn = \Carbon\Carbon::parse($request->check_in);
-        $CheckOut = \Carbon\Carbon::parse($request->check_out);
-        $TodayDate = \Carbon\Carbon::now()->format('Y-m-d H:i:s');
-        $HotelName = $request->hotel_id;
-        $HolderFName = $request->holderFirstName;
-        $HolderLName = $request->holderLastName;
-        $BookingReference = $bookingRef;
-        $ResevationName = $HolderFName . ' ' . $HolderLName;
-        $NoOfAdults = $request->no_of_adults;
-        $NoOfChilds = $request->no_of_childs;
-        $AdultRate = $request->adult_rate;
-        $ChildWithBed = $request->child_withbed_rate;
-        $ChildNoBed = $request->child_withoutbed_rate;
-        $BedType = $request->bed_type;
-        $RoomType = $request->room_type;
-        $RoomCount = $request->room_count;
-        $BoardCode = $request->board_code;
-        $SpecialRemarks = $request->special_remarks;
-        $ResevationPlatform = 'Aahaas';
-        $BookingRemarks = $request->special_remarks;
-        $Status = 'Pending';
-        $Currency = 'USD';
-        $CancellationDays = $sql_query->Days_Count;
-        $CancellationDeadline = $CheckIn->subDays($CancellationDays);
+    //     // return $request->rate_key;
+    //     $rate_Key = $request->rate_key;
+    //     $CheckIn = \Carbon\Carbon::parse($request->check_in);
+    //     $CheckOut = \Carbon\Carbon::parse($request->check_out);
+    //     $TodayDate = \Carbon\Carbon::now()->format('Y-m-d H:i:s');
+    //     $HotelName = $request->hotel_id;
+    //     $HolderFName = $request->holderFirstName;
+    //     $HolderLName = $request->holderLastName;
+    //     $BookingReference = $bookingRef;
+    //     $ResevationName = $HolderFName . ' ' . $HolderLName;
+    //     $NoOfAdults = $request->no_of_adults;
+    //     $NoOfChilds = $request->no_of_childs;
+    //     $AdultRate = $request->adult_rate;
+    //     $ChildWithBed = $request->child_withbed_rate;
+    //     $ChildNoBed = $request->child_withoutbed_rate;
+    //     $BedType = $request->bed_type;
+    //     $RoomType = $request->room_type;
+    //     $RoomCount = $request->room_count;
+    //     $BoardCode = $request->board_code;
+    //     $SpecialRemarks = $request->special_remarks;
+    //     $ResevationPlatform = 'Aahaas';
+    //     $BookingRemarks = $request->special_remarks;
+    //     $Status = 'Pending';
+    //     $Currency = 'USD';
+    //     $CancellationDays = 5;
+    //     $CancellationDeadline = $CheckIn->subDays($CancellationDays);
 
-        // ######################################################### //
+    //     // ######################################################### //
 
-        $Child_Age = explode(',', $request->child_age);
-        $childagearray = array();
+    //     $Child_Age = explode(',', $request->child_age);
+    //     $childagearray = array();
 
-        $count = 0;
+    //     $count = 0;
 
-        if (count($Child_Age) >= 1) {
-            foreach ($Child_Age as $age) {
-                if ($age > 3 && $age <= 5) {
-                    $childagearray[] = '4-5';
-                } else if ($age >= 6 && $age <= 11) {
-                    $childagearray[] = '6-11';
-                }
-            }
+    //     if (count($Child_Age) >= 1) {
+    //         foreach ($Child_Age as $age) {
+    //             if ($age > 3 && $age <= 5) {
+    //                 $childagearray[] = '4-5';
+    //             } else if ($age >= 6 && $age <= 11) {
+    //                 $childagearray[] = '6-11';
+    //             }
+    //         }
 
-            $count = array_count_values($childagearray);
-        }
+    //         $count = array_count_values($childagearray);
+    //     }
 
-        $ChildNoBedCount = 0;
-        $ChildWithBedCount = 0;
+    //     $ChildNoBedCount = 0;
+    //     $ChildWithBedCount = 0;
 
-        if (in_array('4-5', $childagearray)) {
-            $ChildNoBedCount = $count['4-5'];
-        }
-        if (in_array('6-11', $childagearray)) {
-            $ChildWithBedCount = $count['6-11'];
-        }
+    //     if (in_array('4-5', $childagearray)) {
+    //         $ChildNoBedCount = $count['4-5'];
+    //     }
+    //     if (in_array('6-11', $childagearray)) {
+    //         $ChildWithBedCount = $count['6-11'];
+    //     }
 
-        // return $ChildWithBedCount;
+    //     // return $ChildWithBedCount;
 
-        // **** Meal Types **** //
+    //     // **** Meal Types **** //
 
-        $MealType = explode(',', $request->meal_type);
-        $MealDate = explode(',', $request->meal_date);
-        $MealAdult = explode(',', $request->meal_adults);
-        $MealChild = explode(',', $request->meal_childs);
-        $MealSpReq = explode(',', $request->meal_Sp_req);
-        $MealUnitPrice = explode(',', $request->meal_unit_price);
+    //     $MealType = explode(',', $request->meal_type);
+    //     $MealDate = explode(',', $request->meal_date);
+    //     $MealAdult = explode(',', $request->meal_adults);
+    //     $MealChild = explode(',', $request->meal_childs);
+    //     $MealSpReq = explode(',', $request->meal_Sp_req);
+    //     $MealUnitPrice = explode(',', $request->meal_unit_price);
 
-        // **** Service Types **** //
-        $ServiceType = explode(',', $request->service_type);
-        $ServiceDate = explode(',', $request->service_date);
-        $ServiceAdult = explode(',', $request->service_adult);
-        $ServiceChild = explode(',', $request->service_child);
-        $ServiceUnitPrice = explode(',', $request->service_rate);
+    //     // **** Service Types **** //
+    //     $ServiceType = explode(',', $request->service_type);
+    //     $ServiceDate = explode(',', $request->service_date);
+    //     $ServiceAdult = explode(',', $request->service_adult);
+    //     $ServiceChild = explode(',', $request->service_child);
+    //     $ServiceUnitPrice = explode(',', $request->service_rate);
 
-        // **** Pax Details **** //
-        $FirstName = explode(',', $request->first_name);
-        $LastName = explode(',', $request->last_name);
-        $PaxType = explode(',', $request->pax_type);
-        $Price = explode(',', $request->per_price);
+    //     // **** Pax Details **** //
+    //     $FirstName = explode(',', $request->first_name);
+    //     $LastName = explode(',', $request->last_name);
+    //     $PaxType = explode(',', $request->pax_type);
+    //     $Price = explode(',', $request->per_price);
 
-        //**** Child Details ****//
-        $ChildName = explode(',', $request->child_name);
+    //     //**** Child Details ****//
+    //     $ChildName = explode(',', $request->child_name);
 
-        $paxDetails = array();
-        $serviceDetail = array();
-        $mealDetail = array();
-        $childAgeDetails = array();
+    //     $paxDetails = array();
+    //     $serviceDetail = array();
+    //     $mealDetail = array();
+    //     $childAgeDetails = array();
 
-        // $CategoryID = $request->category_id;
+    //     // $CategoryID = $request->category_id;
 
-        try {
+    //     try {
 
-            HotelResevation::create([
-                'rate_key' => $rate_Key,
-                'resevation_no' => $BookingReference,
-                'resevation_name' => $ResevationName,
-                'resevation_date' => $TodayDate,
-                'hotel_name' => $HotelName,
-                'checkin_time' => $CheckIn,
-                'checkout_time' => $CheckOut,
-                'baby_crib' => '-',
-                'no_of_adults' => $NoOfAdults,
-                'no_of_childs' => $NoOfChilds,
-                'child_withbed' => $ChildWithBedCount,
-                'child_nobed' => $ChildNoBedCount,
-                'bed_type' => $BedType,
-                'room_type' => $RoomType,
-                'no_of_rooms' => $RoomCount,
-                'board_code' => $BoardCode,
-                'special_notice' => $SpecialRemarks,
-                'resevation_platform' => $ResevationPlatform,
-                'resevation_status' => 'CONFIRMED',
-                'currency' => $Currency,
-                'cancelation' => 'true',
-                'modification' => 'false',
-                'cancelation_amount' => '-',
-                'cancelation_deadline' => $CancellationDeadline,
-                'booking_remarks' => $BookingRemarks,
-                'status' => 'NEW',
-                'created_at' => $TodayDate,
-                'updated_at' => $TodayDate,
-                'user_id' => $request->userID
-            ]);
+    //         HotelResevation::create([
+    //             'rate_key' => $rate_Key,
+    //             'resevation_no' => $BookingReference,
+    //             'resevation_name' => $ResevationName,
+    //             'resevation_date' => $TodayDate,
+    //             'hotel_name' => $HotelName,
+    //             'checkin_time' => $CheckIn,
+    //             'checkout_time' => $CheckOut,
+    //             'baby_crib' => '-',
+    //             'no_of_adults' => $NoOfAdults,
+    //             'no_of_childs' => $NoOfChilds,
+    //             'child_withbed' => $ChildWithBedCount,
+    //             'child_nobed' => $ChildNoBedCount,
+    //             'bed_type' => $BedType,
+    //             'room_type' => $RoomType,
+    //             'no_of_rooms' => $RoomCount,
+    //             'board_code' => $BoardCode,
+    //             'special_notice' => $SpecialRemarks,
+    //             'resevation_platform' => $ResevationPlatform,
+    //             'resevation_status' => 'CONFIRMED',
+    //             'currency' => $Currency,
+    //             'cancelation' => 'true',
+    //             'modification' => 'false',
+    //             'cancelation_amount' => '-',
+    //             'cancelation_deadline' => $CancellationDeadline,
+    //             'booking_remarks' => $BookingRemarks,
+    //             'status' => 'NEW',
+    //             'created_at' => $TodayDate,
+    //             'updated_at' => $TodayDate,
+    //             'user_id' => $request->userID
+    //         ]);
 
-            // **** Hotel Resevation Child Details ****//
-            if (count($Child_Age) >= 1) {
-                for ($cc = 0; $cc < count($Child_Age); $cc++) {
-                    $childAgeDetails[] = ['name' => $ChildName[$cc], 'age' => $Child_Age[$cc]];
-                }
-                foreach ($childAgeDetails as $childAge) {
-                    HotelResevationChildDetail::create([
-                        'resevation_no' => $BookingReference,
-                        'child_name' => $childAge['name'],
-                        'child_age' => $childAge['age']
-                    ]);
-                }
-            }
+    //         // **** Hotel Resevation Child Details ****//
+    //         if (count($Child_Age) >= 1) {
+    //             for ($cc = 0; $cc < count($Child_Age); $cc++) {
+    //                 $childAgeDetails[] = ['name' => $ChildName[$cc], 'age' => $Child_Age[$cc]];
+    //             }
+    //             foreach ($childAgeDetails as $childAge) {
+    //                 HotelResevationChildDetail::create([
+    //                     'resevation_no' => $BookingReference,
+    //                     'child_name' => $childAge['name'],
+    //                     'child_age' => $childAge['age']
+    //                 ]);
+    //             }
+    //         }
 
-            // **** Payments **** //
-            $TotalAmount = (float)$request->total_amount;
-            $PaidAmount = (float)$request->paid_amount;
-            $BalanceAmount = (float)$request->balance_amount;
-            $PaymentMethod = $request->payment_method;
+    //         // **** Payments **** //
+    //         $TotalAmount = (float)$request->total_amount;
+    //         $PaidAmount = (float)$request->paid_amount;
+    //         $BalanceAmount = (float)$request->balance_amount;
+    //         $PaymentMethod = $request->payment_method;
 
-            HotelRoomDetails::create([
-                'resevation_no' => $BookingReference,
-                'room_code' => $BedType,
-                'adult_count' => $NoOfAdults,
-                'child_count' => $NoOfChilds,
-                'adult_rate' => $AdultRate,
-                'child_withbed_rate' => $ChildWithBed,
-                'child_nobed_rate' => $ChildNoBed
-            ]);
-
-
-            if (count($MealType) >= 1) {
-                for ($c = 0; $c < count($MealType); $c++) {
-                    $mealDetail[] = ['type' => $MealType[$c], 'date' => $MealDate[$c], 'adult' => $MealAdult[$c], 'child' => $MealChild[$c], 'sp_req' => $MealSpReq[$c], 'price' => $MealUnitPrice[$c]];
-                }
-
-                foreach ($mealDetail as $meal) {
-                    ResevationMealDetail::create([
-                        'resevation_no' => $BookingReference,
-                        'meal_plan' => $meal['type'],
-                        'date' => $meal['date'],
-                        'adult_count' => $meal['adult'],
-                        'child_count' => $meal['child'],
-                        'special_request' => $meal['sp_req'],
-                        'unit_price' => $meal['price'],
-                    ]);
-                }
-            }
+    //         HotelRoomDetails::create([
+    //             'resevation_no' => $BookingReference,
+    //             'room_code' => $BedType,
+    //             'adult_count' => $NoOfAdults,
+    //             'child_count' => $NoOfChilds,
+    //             'adult_rate' => $AdultRate,
+    //             'child_withbed_rate' => $ChildWithBed,
+    //             'child_nobed_rate' => $ChildNoBed
+    //         ]);
 
 
-            if (count($ServiceType) >= 1) {
-                for ($x = 0; $x < count($ServiceType); $x++) {
-                    $serviceDetail[] = ['type' => $ServiceType[$x], 'date' => $ServiceDate[$x], 'adult' => $ServiceAdult[$x], 'child' => $ServiceChild[$x], 'price' => $ServiceUnitPrice[$x]];
-                }
+    //         if (count($MealType) >= 1) {
+    //             for ($c = 0; $c < count($MealType); $c++) {
+    //                 $mealDetail[] = ['type' => $MealType[$c], 'date' => $MealDate[$c], 'adult' => $MealAdult[$c], 'child' => $MealChild[$c], 'sp_req' => $MealSpReq[$c], 'price' => $MealUnitPrice[$c]];
+    //             }
 
-                foreach ($serviceDetail as $service) {
-                    ResevationServiceType::create([
-                        'resevation_no' => $BookingReference,
-                        'service_type' => $service['type'],
-                        'date' => $service['date'],
-                        'adult_count' => $service['adult'],
-                        'child_count' => $service['child'],
-                        'unit_price' => $service['price'],
-                    ]);
-                }
-            }
-
-            if (count($PaxType) >= 1) {
-                for ($y = 0; $y < count($PaxType); $y++) {
-                    $paxDetails[] = ['fname' => $FirstName[$y], 'lname' => $LastName[$y], 'type' => $PaxType[$y], 'price' => $Price[$y]];
-                }
-
-                foreach ($paxDetails as $pax) {
-                    ResevationTraverllerDetail::create([
-                        'resevation_no' => $BookingReference,
-                        'first_name' => $pax['fname'],
-                        'last_name' => $pax['lname'],
-                        'type' => $pax['type']
-                    ]);
-                }
-            }
-
-            if ($TotalAmount == $BalanceAmount) {
-                HotelResevationPayment::create([
-                    'resevation_no' => $BookingReference,
-                    'total_amount' => $TotalAmount,
-                    'paid_amount' => $PaidAmount,
-                    'balance_payment' => $BalanceAmount,
-                    'amendment_refund' => 0.00,
-                    'payment_method' => $PaymentMethod,
-                    'payment_status' => 'PENDING',
-                    'booking_status' => 'NEW',
-                    'payment_slip_image' => '-'
-                ]);
-            } else {
-                HotelResevationPayment::create([
-                    'resevation_no' => $BookingReference,
-                    'total_amount' => $TotalAmount,
-                    'paid_amount' => $PaidAmount,
-                    'balance_payment' => $BalanceAmount,
-                    'amendment_refund' => 0.00,
-                    'payment_method' => $PaymentMethod,
-                    'payment_status' => 'COMPLETED',
-                    'booking_status' => 'NEW',
-                    'payment_slip_image' => '-'
-                ]);
-            }
-
-            // DB::select(DB::raw("UPDATE tbl_hotel_inventory SET allotment=allotment-$RoomCount WHERE tbl_hotel_inventory.id=$CategoryID"));
+    //             foreach ($mealDetail as $meal) {
+    //                 ResevationMealDetail::create([
+    //                     'resevation_no' => $BookingReference,
+    //                     'meal_plan' => $meal['type'],
+    //                     'date' => $meal['date'],
+    //                     'adult_count' => $meal['adult'],
+    //                     'child_count' => $meal['child'],
+    //                     'special_request' => $meal['sp_req'],
+    //                     'unit_price' => $meal['price'],
+    //                 ]);
+    //             }
+    //         }
 
 
-            return $this->sendConfirmationEmail($BookingReference);
+    //         if (count($ServiceType) >= 1) {
+    //             for ($x = 0; $x < count($ServiceType); $x++) {
+    //                 $serviceDetail[] = ['type' => $ServiceType[$x], 'date' => $ServiceDate[$x], 'adult' => $ServiceAdult[$x], 'child' => $ServiceChild[$x], 'price' => $ServiceUnitPrice[$x]];
+    //             }
 
-            // return response()->json([
-            //     'status' => 200,
-            //     'message' => 'Booking confirmed! Confirmation e-mail will recieve to your email shortley'
-            // ]);
-        } catch (\Exception $ex) {
-            return response()->json([
-                'status' => 501,
-                'error_message' => throw $ex
-            ]);
-        }
-    }
+    //             foreach ($serviceDetail as $service) {
+    //                 ResevationServiceType::create([
+    //                     'resevation_no' => $BookingReference,
+    //                     'service_type' => $service['type'],
+    //                     'date' => $service['date'],
+    //                     'adult_count' => $service['adult'],
+    //                     'child_count' => $service['child'],
+    //                     'unit_price' => $service['price'],
+    //                 ]);
+    //             }
+    //         }
+
+    //         if (count($PaxType) >= 1) {
+    //             for ($y = 0; $y < count($PaxType); $y++) {
+    //                 $paxDetails[] = ['fname' => $FirstName[$y], 'lname' => $LastName[$y], 'type' => $PaxType[$y], 'price' => $Price[$y]];
+    //             }
+
+    //             foreach ($paxDetails as $pax) {
+    //                 ResevationTraverllerDetail::create([
+    //                     'resevation_no' => $BookingReference,
+    //                     'first_name' => $pax['fname'],
+    //                     'last_name' => $pax['lname'],
+    //                     'type' => $pax['type']
+    //                 ]);
+    //             }
+    //         }
+
+    //         if ($TotalAmount == $BalanceAmount) {
+    //             HotelResevationPayment::create([
+    //                 'resevation_no' => $BookingReference,
+    //                 'total_amount' => $TotalAmount,
+    //                 'paid_amount' => $PaidAmount,
+    //                 'balance_payment' => $BalanceAmount,
+    //                 'amendment_refund' => 0.00,
+    //                 'payment_method' => $PaymentMethod,
+    //                 'payment_status' => 'PENDING',
+    //                 'booking_status' => 'NEW',
+    //                 'payment_slip_image' => '-'
+    //             ]);
+    //         } else {
+    //             HotelResevationPayment::create([
+    //                 'resevation_no' => $BookingReference,
+    //                 'total_amount' => $TotalAmount,
+    //                 'paid_amount' => $PaidAmount,
+    //                 'balance_payment' => $BalanceAmount,
+    //                 'amendment_refund' => 0.00,
+    //                 'payment_method' => $PaymentMethod,
+    //                 'payment_status' => 'COMPLETED',
+    //                 'booking_status' => 'NEW',
+    //                 'payment_slip_image' => '-'
+    //             ]);
+    //         }
+
+    //         return $this->sendConfirmationEmail($BookingReference);
+
+    //         // return response()->json([
+    //         //     'status' => 200,
+    //         //     'message' => 'Booking confirmed! Confirmation e-mail will recieve to your email shortley'
+    //         // ]);
+    //     } catch (\Exception $ex) {
+    //         return response()->json([
+    //             'status' => 501,
+    //             'error_message' => throw $ex
+    //         ]);
+    //     }
+    // }
 
 
     // ***** Booking Confirming AppleHolidays ***** //
-    public function confirmBookingApple(Request $request, $id)
+    public function confirmBookingApple($request, $id, $curcy, $preid)
     {
-
-        $sql_query = DB::table('tbl_hotel')->where('tbl_hotel.id', $id)
-            ->join('tbl_hotel_terms_conditions', 'tbl_hotel.id', '=', 'tbl_hotel_terms_conditions.hotel_id')
-            ->join('tbl_hotel_vendor', 'tbl_hotel.id', '=', 'tbl_hotel_vendor.hotel_id')
-            ->select('tbl_hotel.hotel_name', 'tbl_hotel.hotel_address', 'tbl_hotel_vendor.hotel_email', 'tbl_hotel_terms_conditions.cancellation_deadline AS Days_Count')->first();
-
-
-
-        $current_timestamp = Carbon::now()->timestamp;
-        $randNumber = rand(2, 50);
-        $bookingRef = "AHBK_" . $current_timestamp . "_" . $randNumber;
-
-        // return $request->input('rate_key');
-        $rate_Key = $request->input('rate_key');
-        $CheckIn = \Carbon\Carbon::parse($request->input('check_in'));
-        $CheckOut = \Carbon\Carbon::parse($request->input('check_out'));
-        $TodayDate = \Carbon\Carbon::now()->format('Y-m-d H:i:s');
-        $HotelName = $request->input('hotel_id');
-        $HolderFName = $request->input('holderFirstName');
-        $HolderLName = $request->input('holderLastName');
-        $BookingReference = $bookingRef;
-        $ResevationName = $HolderFName . ' ' . $HolderLName;
-        $NoOfAdults = $request->input('no_of_adults');
-        $NoOfChilds = $request->input('no_of_childs');
-        $AdultRate = $request->input('adult_rate');
-        $ChildWithBed = $request->input('child_withbed_rate');
-        $ChildNoBed = $request->input('child_withoutbed_rate');
-        $BedType = $request->input('bed_type');
-        $RoomType = $request->input('room_type');
-        $RoomCount = $request->input('room_count');
-        $BoardCode = $request->input('board_code');
-        $SpecialRemarks = $request->input('special_remarks');
-        $ResevationPlatform = 'Aahaas';
-        $BookingRemarks = $request->input('special_remarks');
-        $Status = 'Pending';
-        $Currency = 'USD';
-        $CancellationDays = $sql_query->Days_Count;
-        $CancellationDeadline = $CheckIn->subDays($CancellationDays);
-
-        // ######################################################### //
-
-        $Child_Age = explode(',', $request->input('child_age'));
-        $childagearray = array();
-
-        $count = 0;
-
-        if (count($Child_Age) >= 1) {
-            foreach ($Child_Age as $age) {
-                if ($age > 3 && $age <= 5) {
-                    $childagearray[] = '4-5';
-                } else if ($age >= 6 && $age <= 11) {
-                    $childagearray[] = '6-11';
-                }
-            }
-
-            $count = array_count_values($childagearray);
-        }
-
-        $ChildNoBedCount = 0;
-        $ChildWithBedCount = 0;
-
-        if (in_array('4-5', $childagearray)) {
-            $ChildNoBedCount = $count['4-5'];
-        }
-        if (in_array('6-11', $childagearray)) {
-            $ChildWithBedCount = $count['6-11'];
-        }
-
-        // return $ChildWithBedCount;
-
-        // **** Meal Types **** //
-
-        $MealType = explode(',', $request->input('meal_type'));
-        $MealDate = explode(',', $request->input('meal_date'));
-        $MealAdult = explode(',', $request->input('meal_adults'));
-        $MealChild = explode(',', $request->input('meal_childs'));
-        $MealSpReq = explode(',', $request->input('meal_Sp_req'));
-        $MealUnitPrice = explode(',', $request->input('meal_unit_price'));
-
-        // **** Service Types **** //
-        $ServiceType = explode(',', $request->input('service_type'));
-        $ServiceDate = explode(',', $request->input('service_date'));
-        $ServiceAdult = explode(',', $request->input('service_adult'));
-        $ServiceChild = explode(',', $request->input('service_child'));
-        $ServiceUnitPrice = explode(',', $request->input('service_rate'));
-
-        // **** Pax Details **** //
-        $FirstName = explode(',', $request->input('first_name'));
-        $LastName = explode(',', $request->input('last_name'));
-        $PaxType = explode(',', $request->input('pax_type'));
-        $Price = explode(',', $request->input('per_price'));
-
-        //**** Child Details ****//
-        $ChildName = explode(',', $request->input('child_name'));
-
-        $paxDetails = array();
-        $serviceDetail = array();
-        $mealDetail = array();
-        $childAgeDetails = array();
-
-        $CategoryID = $request->input('category_id');
-
         try {
+            $current_timestamp = Carbon::now()->timestamp;
+            $randNumber = rand(2, 50);
+            $bookingRef = "AHBK" . $current_timestamp . "_" . $randNumber;
+            $roomType = explode(',', $request->hotelRoomTypes);
+            // return $request;
 
-            HotelResevation::create([
-                'rate_key' => $rate_Key,
-                'resevation_no' => $BookingReference,
-                'resevation_name' => $ResevationName,
-                'resevation_date' => $TodayDate,
-                'hotel_name' => $HotelName,
-                'checkin_time' => $CheckIn,
-                'checkout_time' => $CheckOut,
-                'baby_crib' => '-',
-                'no_of_adults' => $NoOfAdults,
-                'no_of_childs' => $NoOfChilds,
-                'child_withbed' => $ChildWithBedCount,
-                'child_nobed' => $ChildNoBedCount,
-                'bed_type' => $BedType,
-                'room_type' => $RoomType,
-                'no_of_rooms' => $RoomCount,
-                'board_code' => $BoardCode,
-                'special_notice' => $SpecialRemarks,
-                'resevation_platform' => $ResevationPlatform,
-                'resevation_status' => 'CONFIRMED',
-                'currency' => $Currency,
-                'cancelation' => 'true',
-                'modification' => 'false',
-                'cancelation_amount' => '-',
-                'cancelation_deadline' => $CancellationDeadline,
-                'booking_remarks' => $BookingRemarks,
-                'status' => 'NEW',
-                'created_at' => $TodayDate,
-                'updated_at' => $TodayDate,
-                'user_id' => $request->input('userID')
-            ]);
+            $rateKey = $request->rate_key;
+            $HolderFullName = $request->first_name . ' ' . $request->last_name;
+            $resevationDate = Carbon::now()->format('Y-m-d');
+            $hotelName = $request->hotelCode;
+            $checkinTime = $request->check_in;
+            $checkoutTime = $request->check_out;
+            $noOfAD = $request->no_of_adults;
+            $noOfCH = $request->no_of_childs;
+            $bedType = $request->bed_type;
+            $roomType = $request->hotelRoomTypes;
+            $noOfRooms = $request->room_count;
+            $boardCode = $request->board_code;
+            $remarks = $request->special_remarks;
+            $resevationPlatform = $request->provider;
+            $resevationStatus = 'Confirm';
+            $currency = $curcy;
+            $cancelation = true;
+            $modification = true;
+            $cancelation_amount = null;
+            $cancelation_deadline = Carbon::now()->format('Y-m-d');
+            $user_Id = $request->userID;
 
-            // **** Hotel Resevation Child Details ****//
-            if (count($Child_Age) >= 1) {
-                for ($cc = 0; $cc < count($Child_Age); $cc++) {
-                    $childAgeDetails[] = ['name' => $ChildName[$cc], 'age' => $Child_Age[$cc]];
-                }
-                foreach ($childAgeDetails as $childAge) {
-                    HotelResevationChildDetail::create([
-                        'resevation_no' => $BookingReference,
-                        'child_name' => $childAge['name'],
-                        'child_age' => $childAge['age']
-                    ]);
-                }
-            }
-
-            // **** Payments **** //
-            $TotalAmount = (float)$request->input('total_amount');
-            $PaidAmount = (float)$request->input('paid_amount');
-            $BalanceAmount = (float)$request->input('balance_amount');
-            $PaymentMethod = $request->input('payment_method');
-
-            HotelRoomDetails::create([
-                'resevation_no' => $BookingReference,
-                'room_code' => $BedType,
-                'adult_count' => $NoOfAdults,
-                'child_count' => $NoOfChilds,
-                'adult_rate' => $AdultRate,
-                'child_withbed_rate' => $ChildWithBed,
-                'child_nobed_rate' => $ChildNoBed
-            ]);
-
-
-            if (count($MealType) >= 1) {
-                for ($c = 0; $c < count($MealType); $c++) {
-                    $mealDetail[] = ['type' => $MealType[$c], 'date' => $MealDate[$c], 'adult' => $MealAdult[$c], 'child' => $MealChild[$c], 'sp_req' => $MealSpReq[$c], 'price' => $MealUnitPrice[$c]];
-                }
-
-                foreach ($mealDetail as $meal) {
-                    ResevationMealDetail::create([
-                        'resevation_no' => $BookingReference,
-                        'meal_plan' => $meal['type'],
-                        'date' => $meal['date'],
-                        'adult_count' => $meal['adult'],
-                        'child_count' => $meal['child'],
-                        'special_request' => $meal['sp_req'],
-                        'unit_price' => $meal['price'],
-                    ]);
-                }
-            }
-
-
-            if (count($ServiceType) >= 1) {
-                for ($x = 0; $x < count($ServiceType); $x++) {
-                    $serviceDetail[] = ['type' => $ServiceType[$x], 'date' => $ServiceDate[$x], 'adult' => $ServiceAdult[$x], 'child' => $ServiceChild[$x], 'price' => $ServiceUnitPrice[$x]];
-                }
-
-                foreach ($serviceDetail as $service) {
-                    ResevationServiceType::create([
-                        'resevation_no' => $BookingReference,
-                        'service_type' => $service['type'],
-                        'date' => $service['date'],
-                        'adult_count' => $service['adult'],
-                        'child_count' => $service['child'],
-                        'unit_price' => $service['price'],
-                    ]);
-                }
-            }
-
-            if (count($PaxType) >= 1) {
-                for ($y = 0; $y < count($PaxType); $y++) {
-                    $paxDetails[] = ['fname' => $FirstName[$y], 'lname' => $LastName[$y], 'type' => $PaxType[$y], 'price' => $Price[$y]];
-                }
-
-                foreach ($paxDetails as $pax) {
-                    ResevationTraverllerDetail::create([
-                        'resevation_no' => $BookingReference,
-                        'first_name' => $pax['fname'],
-                        'last_name' => $pax['lname'],
-                        'type' => $pax['type']
-                    ]);
-                }
-            }
-
-            if ($TotalAmount == $BalanceAmount) {
-                HotelResevationPayment::create([
-                    'resevation_no' => $BookingReference,
-                    'total_amount' => $TotalAmount,
-                    'paid_amount' => $PaidAmount,
-                    'balance_payment' => $BalanceAmount,
-                    'amendment_refund' => 0.00,
-                    'payment_method' => $PaymentMethod,
-                    'payment_status' => 'PENDING',
-                    'booking_status' => 'NEW',
-                    'payment_slip_image' => '-'
-                ]);
-            } else {
-                HotelResevationPayment::create([
-                    'resevation_no' => $BookingReference,
-                    'total_amount' => $TotalAmount,
-                    'paid_amount' => $PaidAmount,
-                    'balance_payment' => $BalanceAmount,
-                    'amendment_refund' => 0.00,
-                    'payment_method' => $PaymentMethod,
-                    'payment_status' => 'COMPLETED',
-                    'booking_status' => 'NEW',
-                    'payment_slip_image' => '-'
-                ]);
-            }
-
-            // DB::select(DB::raw("UPDATE tbl_hotel_inventory SET allotment=allotment-$RoomCount WHERE tbl_hotel_inventory.id=$CategoryID"));
-
-
-            return $this->sendConfirmationEmail($BookingReference);
-
-            // return response()->json([
-            //     'status' => 200,
-            //     'message' => 'Booking confirmed! Confirmation e-mail will recieve to your email shortley'
-            // ]);
+            $this->hotelreservation->makeHotelReservation($rateKey, $bookingRef, $HolderFullName, $resevationDate, $hotelName, $checkinTime, $checkoutTime, $noOfAD, $noOfCH, $bedType, $roomType, $noOfRooms, $boardCode, $remarks, $resevationPlatform, $resevationStatus, $currency, $cancelation, $modification, $cancelation_amount, $cancelation_deadline, $user_Id, $preid);
         } catch (\Exception $ex) {
             return response()->json([
                 'status' => 501,
@@ -1073,132 +858,147 @@ class BookingController extends Controller
     // **** Confirmation Email **** //
     public function sendConfirmationEmail($bookingId) //$bookingId
     {
-
-        $dataJoinOne = DB::table('tbl_hotel_resevation')
-            ->where('tbl_hotel_resevation.resevation_no', $bookingId)
-            ->where('tbl_hotel_resevation.status', 'New')
-            ->join('users', 'tbl_hotel_resevation.user_id', '=', 'users.id')
-            ->join('tbl_hotel_roomdetails', 'tbl_hotel_resevation.resevation_no', '=', 'tbl_hotel_roomdetails.resevation_no')
-            ->join('tbl_hotel_resevation_payments', 'tbl_hotel_resevation.resevation_no', '=', 'tbl_hotel_resevation_payments.resevation_no')
-            ->join('tbl_hotel', 'tbl_hotel_resevation.hotel_name', '=', 'tbl_hotel.id')
-            ->join('tbl_hotel_vendor', 'tbl_hotel_resevation.hotel_name', '=', 'tbl_hotel_vendor.hotel_id')
-            ->select(
-                'users.email',
-                'tbl_hotel_resevation.*',
-                'tbl_hotel_resevation.id AS InoiceId',
-                'tbl_hotel_roomdetails.*',
-                'tbl_hotel_resevation_payments.*',
-                'tbl_hotel.hotel_name',
-                'tbl_hotel.hotel_address',
-                'tbl_hotel_vendor.hotel_email'
-            )->first();
-
-        // return $dataJoinOne; 
-
-        $dataJoinTwo = DB::table('tbl_hotel_travellerdetails')->where('tbl_hotel_travellerdetails.resevation_no', $bookingId)->select('*')->get();
-        $dataJoinThree = DB::table('tbl_hotel_resevation')
-            ->where('tbl_hotel_resevation.resevation_no', $bookingId)
-            ->where('tbl_hotel_resevation.status', 'New')
-            ->join('tbl_hotel_mealdetail', 'tbl_hotel_resevation.resevation_no', '=', 'tbl_hotel_mealdetail.resevation_no')
-            ->select('*')->get();
-        $dataJoinFour = DB::table('tbl_hotel_servicedetail')->where('tbl_hotel_servicedetail.resevation_no', $bookingId)->select('*')->get();
-
-
-
-        $detailJoin = DB::table('tbl_hotel_resevation')
-            ->where('tbl_hotel_resevation.resevation_no', $bookingId)
-            ->where('tbl_hotel_resevation.status', 'New')
-            ->join('tbl_hotel_roomdetails', 'tbl_hotel_resevation.resevation_no', '=', 'tbl_hotel_roomdetails.resevation_no')
-            ->join('tbl_hotel_mealdetail', 'tbl_hotel_resevation.resevation_no', '=', 'tbl_hotel_mealdetail.resevation_no')
-            ->join('tbl_hotel_servicedetail', 'tbl_hotel_resevation.resevation_no', '=', 'tbl_hotel_servicedetail.resevation_no')
-            ->join('tbl_hotel_travellerdetails', 'tbl_hotel_resevation.resevation_no', '=', 'tbl_hotel_travellerdetails.resevation_no')
-            ->select(
-                'tbl_hotel_roomdetails.adult_count AS AdultCount',
-                'tbl_hotel_roomdetails.child_count AS ChildCount',
-                'tbl_hotel_mealdetail.meal_plan AS MealPlan',
-                'tbl_hotel_mealdetail.adult_count AS MealAdult',
-                'tbl_hotel_mealdetail.child_count AS MealChild',
-                'tbl_hotel_mealdetail.date AS MealDate',
-                'tbl_hotel_mealdetail.special_request AS MealSpeReq',
-                'tbl_hotel_mealdetail.unit_price AS MealPrice',
-                'tbl_hotel_servicedetail.service_type AS SerType',
-                'tbl_hotel_servicedetail.unit_price AS ServicePrice',
-                'tbl_hotel_servicedetail.child_count AS SerChildCount',
-                'tbl_hotel_servicedetail.date AS SerDate',
-                'tbl_hotel_servicedetail.unit_price AS SerPerPrice',
-                'tbl_hotel_travellerdetails.type AS PaxType',
-                // 'tbl_hotel_reservation.special_notice',
-            )->get();
-
-        // return $detailJoin;
-
-        $userEmail = $dataJoinOne->email;
-
-        $invoice_no = $dataJoinOne->InoiceId;
-        $resevationNumber = $dataJoinOne->resevation_no;
-        $resevation_name = $dataJoinOne->resevation_name;
-        $resevation_date = $dataJoinOne->resevation_date;
-        $checkin_time = date('Y-m-d', strtotime($dataJoinOne->checkin_time));
-        $checkout_time = date('Y-m-d', strtotime($dataJoinOne->checkout_time));
-        $no_of_adults = $dataJoinOne->no_of_adults;
-        $no_of_childs = $dataJoinOne->no_of_childs;
-        $bed_type = $dataJoinOne->bed_type;
-        $room_type = $dataJoinOne->room_type;
-        $no_of_rooms = $dataJoinOne->no_of_rooms;
-        $board_code = $dataJoinOne->board_code;
-        $special_notice = $dataJoinOne->special_notice;
-        $currency = $dataJoinOne->currency;
-        $cancelation_deadline = $dataJoinOne->cancelation_deadline;
-        $room_code = $dataJoinOne->room_code;
-        $net_amount = $dataJoinOne->total_amount;
-        $resevation_status = $dataJoinOne->resevation_status;
-        $hotel_name = $dataJoinOne->hotel_name;
-        $hotel_address = $dataJoinOne->hotel_address;
-        $hotel_email = $dataJoinOne->hotel_email;
-        $pax = (int)$no_of_adults + (int)$no_of_childs;
-
-        // ************************ Calculating Nights ************
-        $datetime1 = new \DateTime($checkin_time);
-        $datetime2 = new \DateTime($checkout_time);
-        $interval = $datetime1->diff($datetime2);
-        $days = $interval->format('%a');
-
-        $nightsCount = $days;
-
-        $total_amount = currency($net_amount, $currency, 'USD', true);
-
-        $dataSet = [
-            'invoice_id' => $invoice_no, 'resevation_no' => $resevationNumber, 'resevation_name' => $resevation_name, 'resevation_date' => $resevation_date,
-            'checkin_date' => $checkin_time, 'checkout_time' => $checkout_time, 'no_of_adults' => $no_of_adults, 'no_of_childs' => $no_of_childs, 'bed_type' => $bed_type, 'room_type' => $room_type,
-            'no_of_rooms' => $no_of_rooms, 'board_code' => $board_code, 'special_notice' => $special_notice, 'resevation_status' => $resevation_status, 'pax_count' => $pax,
-            'cancel_dealine' => $cancelation_deadline, 'room_code' => $room_code, 'total_amount' => $total_amount, 'nights' => $nightsCount, 'hotelName' => $hotel_name, 'otherData' => $detailJoin,
-            'meal_data' => $dataJoinThree, 'hotelName' => $hotel_name, 'hotelAddress' => $hotel_address, 'hotelEmail' => $hotel_email
-        ];
-
-        // return view('Mails.AahaasRecipt', $dataSet);
-        // $pdf = Pdf::loadView('pdf_view', $dataSet);
-        // $pdf = PDF::loadView('Mails.AahaasRecipt', $dataSet);
-
-
-        $pdf = app('dompdf.wrapper');
-        $pdf->loadView('Mails.AahaasRecipt', $dataSet);
-        // return $pdf->download('pdf_file.pdf');
-
-        try {
-            $done = Mail::send('Mails.ReciptBody', $dataSet, function ($message) use ($userEmail, $resevationNumber, $pdf) {
-                $message->to($userEmail);
-                $message->subject('Confirmation Email on your Booking Reference: #' . $resevationNumber . '.');
-                $message->attachData($pdf->output(), $resevationNumber . '_' . 'Recipt.pdf', ['mime' => 'application/pdf',]);
-            });
-
-            return response()->json([
-                'status' => 200,
-                'message' => 'Booking Confirmed and Confirmation Mail sent your email'
-            ]);
-        } catch (\Exception $ex) {
-            throw $ex;
-        }
+        return $this->hotel->sendEmailConfirmation($bookingId);
     }
+
+    //send confirmation email
+    // public function sendEmailConfirmation($id)
+    // {
+    //     try {
+
+    //         $dataJoinOne = DB::table('tbl_hotel_resevation')
+    //         ->where('tbl_hotel_resevation.resevation_no', $id)
+    //             ->where('tbl_hotel_resevation.status', 'New')
+    //             ->join('users', 'tbl_hotel_resevation.user_id', '=', 'users.id')
+    //             ->join('tbl_hotel', 'tbl_hotel_resevation.hotel_name', '=', 'tbl_hotel.id')
+    //             ->select('*')->first();
+
+    //         // $dataJoinOne = DB::table('tbl_hotel_resevation')
+    //         //     ->where('tbl_hotel_resevation.resevation_no', $id)
+    //         //     ->where('tbl_hotel_resevation.status', 'New')
+    //         //     ->join('users', 'tbl_hotel_resevation.user_id', '=', 'users.id')
+    //         //     ->join('tbl_hotel', 'tbl_hotel_resevation.hotel_name', '=', 'tbl_hotel.id')
+    //         //     ->join('tbl_hotel_vendor', 'tbl_hotel_resevation.hotel_name', '=', 'tbl_hotel_vendor.hotel_id')
+    //         //     ->select(
+    //         //         'users.email',
+    //         //         'tbl_hotel_resevation.*',
+    //         //         'tbl_hotel_resevation.id AS InoiceId',
+    //         //         'tbl_hotel_roomdetails.*',
+    //         //         'tbl_hotel_resevation_payments.*',
+    //         //         'tbl_hotel.hotel_name',
+    //         //         'tbl_hotel.hotel_address',
+    //         //         'tbl_hotel_vendor.hotel_email'
+    //         //     )->first();
+
+    //         return $dataJoinOne;
+
+    //         $dataJoinTwo = DB::table('tbl_hotel_travellerdetails')->where('tbl_hotel_travellerdetails.resevation_no', $id)->select('*')->get();
+    //         $dataJoinThree = DB::table('tbl_hotel_resevation')
+    //         ->where('tbl_hotel_resevation.resevation_no', $id)
+    //             ->where('tbl_hotel_resevation.status', 'New')
+    //             ->join('tbl_hotel_mealdetail', 'tbl_hotel_resevation.resevation_no', '=', 'tbl_hotel_mealdetail.resevation_no')
+    //             ->select('*')->get();
+    //         $dataJoinFour = DB::table('tbl_hotel_servicedetail')->where('tbl_hotel_servicedetail.resevation_no', $id)->select('*')->get();
+
+
+
+    //         $detailJoin = DB::table('tbl_hotel_resevation')
+    //         ->where('tbl_hotel_resevation.resevation_no', $id)
+    //             ->where('tbl_hotel_resevation.status', 'New')
+    //             ->join('tbl_hotel_roomdetails', 'tbl_hotel_resevation.resevation_no', '=', 'tbl_hotel_roomdetails.resevation_no')
+    //             ->join('tbl_hotel_mealdetail', 'tbl_hotel_resevation.resevation_no', '=', 'tbl_hotel_mealdetail.resevation_no')
+    //             ->join('tbl_hotel_servicedetail', 'tbl_hotel_resevation.resevation_no', '=', 'tbl_hotel_servicedetail.resevation_no')
+    //             ->join('tbl_hotel_travellerdetails', 'tbl_hotel_resevation.resevation_no', '=', 'tbl_hotel_travellerdetails.resevation_no')
+    //             ->select(
+    //                 'tbl_hotel_roomdetails.adult_count AS AdultCount',
+    //                 'tbl_hotel_roomdetails.child_count AS ChildCount',
+    //                 'tbl_hotel_mealdetail.meal_plan AS MealPlan',
+    //                 'tbl_hotel_mealdetail.adult_count AS MealAdult',
+    //                 'tbl_hotel_mealdetail.child_count AS MealChild',
+    //                 'tbl_hotel_mealdetail.date AS MealDate',
+    //                 'tbl_hotel_mealdetail.special_request AS MealSpeReq',
+    //                 'tbl_hotel_mealdetail.unit_price AS MealPrice',
+    //                 'tbl_hotel_servicedetail.service_type AS SerType',
+    //                 'tbl_hotel_servicedetail.unit_price AS ServicePrice',
+    //                 'tbl_hotel_servicedetail.child_count AS SerChildCount',
+    //                 'tbl_hotel_servicedetail.date AS SerDate',
+    //                 'tbl_hotel_servicedetail.unit_price AS SerPerPrice',
+    //                 'tbl_hotel_travellerdetails.type AS PaxType',
+    //                 // 'tbl_hotel_reservation.special_notice',
+    //             )->get();
+
+    //         // return $detailJoin;
+
+    //         $userEmail = $dataJoinOne->email;
+
+    //         $invoice_no = $dataJoinOne->InoiceId;
+    //         $resevationNumber = $dataJoinOne->resevation_no;
+    //         $resevation_name = $dataJoinOne->resevation_name;
+    //         $resevation_date = $dataJoinOne->resevation_date;
+    //         $checkin_time = date('Y-m-d', strtotime($dataJoinOne->checkin_time));
+    //         $checkout_time = date('Y-m-d', strtotime($dataJoinOne->checkout_time));
+    //         $no_of_adults = $dataJoinOne->no_of_adults;
+    //         $no_of_childs = $dataJoinOne->no_of_childs;
+    //         $bed_type = $dataJoinOne->bed_type;
+    //         $room_type = $dataJoinOne->room_type;
+    //         $no_of_rooms = $dataJoinOne->no_of_rooms;
+    //         $board_code = $dataJoinOne->board_code;
+    //         $special_notice = $dataJoinOne->special_notice;
+    //         $currency = $dataJoinOne->currency;
+    //         $cancelation_deadline = $dataJoinOne->cancelation_deadline;
+    //         $room_code = $dataJoinOne->room_code;
+    //         $net_amount = $dataJoinOne->total_amount;
+    //         $resevation_status = $dataJoinOne->resevation_status;
+    //         $hotel_name = $dataJoinOne->hotel_name;
+    //         $hotel_address = $dataJoinOne->hotel_address;
+    //         $hotel_email = $dataJoinOne->hotel_email;
+    //         $pax = (int)$no_of_adults + (int)$no_of_childs;
+
+    //         // ************************ Calculating Nights ************
+    //         $datetime1 = new \DateTime($checkin_time);
+    //         $datetime2 = new \DateTime($checkout_time);
+    //         $interval = $datetime1->diff($datetime2);
+    //         $days = $interval->format('%a');
+
+    //         $nightsCount = $days;
+
+    //         $total_amount = currency($net_amount, $currency, 'USD', true);
+
+    //         $dataSet = [
+    //             'invoice_id' => $invoice_no, 'resevation_no' => $resevationNumber, 'resevation_name' => $resevation_name, 'resevation_date' => $resevation_date,
+    //             'checkin_date' => $checkin_time, 'checkout_time' => $checkout_time, 'no_of_adults' => $no_of_adults, 'no_of_childs' => $no_of_childs, 'bed_type' => $bed_type, 'room_type' => $room_type,
+    //             'no_of_rooms' => $no_of_rooms, 'board_code' => $board_code, 'special_notice' => $special_notice, 'resevation_status' => $resevation_status, 'pax_count' => $pax,
+    //             'cancel_dealine' => $cancelation_deadline, 'room_code' => $room_code, 'total_amount' => $total_amount, 'nights' => $nightsCount, 'hotelName' => $hotel_name, 'otherData' => $detailJoin,
+    //             'meal_data' => $dataJoinThree, 'hotelName' => $hotel_name, 'hotelAddress' => $hotel_address, 'hotelEmail' => $hotel_email
+    //         ];
+
+    //         // return view('Mails.AahaasRecipt', $dataSet);
+    //         // $pdf = Pdf::loadView('pdf_view', $dataSet);
+    //         // $pdf = PDF::loadView('Mails.AahaasRecipt', $dataSet);
+
+
+    //         $pdf = app('dompdf.wrapper');
+    //         $pdf->loadView('Mails.AahaasRecipt', $dataSet);
+    //         // return $pdf->download('pdf_file.pdf');
+
+    //         try {
+    //             $done = Mail::send('Mails.ReciptBody', $dataSet, function ($message) use ($userEmail, $resevationNumber, $pdf) {
+    //                 $message->to($userEmail);
+    //                 $message->subject('Confirmation Email on your Booking Reference: #' . $resevationNumber . '.');
+    //                 $message->attachData($pdf->output(), $resevationNumber . '_' . 'Recipt.pdf', ['mime' => 'application/pdf',]);
+    //             });
+
+    //             return response()->json([
+    //                 'status' => 200,
+    //                 'message' => 'Booking Confirmed and Confirmation Mail sent your email'
+    //             ]);
+    //         } catch (\Exception $ex) {
+    //             throw $ex;
+    //         }
+    //     } catch (\Throwable $th) {
+    //         throw $th;
+    //     }
+    // }
 
     // **** Booking Cancellation Request **** //
     public function bookingCancellationRequest(Request $request, $booking_Id)

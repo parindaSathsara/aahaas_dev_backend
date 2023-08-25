@@ -102,13 +102,13 @@ class CustomerOrdersController extends Controller
                 ->leftJoin('edu_tbl_booking', 'tbl_checkouts.related_order_id', '=', 'edu_tbl_booking.booking_id')
                 ->leftJoin('edu_tbl_rate', 'edu_tbl_booking.rate_id', '=', 'edu_tbl_rate.id')
                 ->leftJoin('edu_tbl_education', 'edu_tbl_booking.education_id', '=', 'edu_tbl_education.education_id')
-                
-                ->leftJoin('tbl_hotel_resevation', 'tbl_checkouts.hotel_id', '=', 'tbl_hotel_resevation.id')
-                ->leftJoin('tbl_hotel_resevation_payments', 'tbl_hotel_resevation.resevation_no', '=', 'tbl_hotel_resevation_payments.resevation_no')
+
+                ->leftJoin('tbl_hotels_pre_booking', 'tbl_checkouts.related_order_id', '=', 'tbl_hotels_pre_booking.booking_id')
+                ->leftJoin('tbl_hotel_resevation', 'tbl_hotels_pre_booking.booking_id', '=', 'tbl_hotel_resevation.pre_id')
                 ->leftJoin('tbl_flight_resevation', 'tbl_checkouts.flight_id', '=', 'tbl_flight_resevation.id')
                 ->leftJoin('tbl_essentials_preorder', 'tbl_checkouts.related_order_id', '=', 'tbl_essentials_preorder.essential_pre_order_id')
 
-               
+
                 ->select(
                     '*',
                     'tbl_checkout_ids.id AS OrderId',
@@ -122,8 +122,8 @@ class CustomerOrdersController extends Controller
                     'tbl_lifestyle_bookings.booking_date AS LifeStylePrefDate',
                     'tbl_lifestyle_bookings.booking_status AS LifeStyleBookStatus',
                     'tbl_hotel_resevation.cancelation_deadline AS HotelCancelDate',
-                    'tbl_hotel_resevation_payments.total_amount AS HotelTotAmount',
-                    
+                    'tbl_hotels_pre_booking.booking_total AS HotelTotAmount',
+
                     'tbl_hotel_resevation.no_of_adults AS NoAdults',
                     'tbl_hotel_resevation.no_of_childs AS NoChilds',
                     'tbl_hotel_resevation.bed_type AS BedType',
@@ -135,8 +135,8 @@ class CustomerOrdersController extends Controller
                     'edu_tbl_booking.booking_date AS EduBookDate',
                     'tbl_flight_resevation.booking_status AS FlightBookStat',
                     'edu_tbl_rate.deadline_no_ofdays AS DeadlineNoDays',
-                   
-                    
+
+
                 )
                 ->orderBy('tbl_checkouts.checkout_id', 'DESC')
                 ->get();
@@ -170,8 +170,10 @@ class CustomerOrdersController extends Controller
                 ->leftJoin('tbl_lifestyle_rates', 'tbl_lifestyle_bookings.lifestyle_rate_id', '=', 'tbl_lifestyle_rates.lifestyle_rate_id')
                 ->leftJoin('edu_tbl_booking', 'tbl_checkouts.related_order_id', '=', 'edu_tbl_booking.booking_id')
                 ->leftJoin('edu_tbl_education', 'edu_tbl_booking.education_id', '=', 'edu_tbl_education.education_id')
-                ->leftJoin('tbl_hotel_resevation', 'tbl_checkouts.hotel_id', '=', 'tbl_hotel_resevation.id')
-                ->leftJoin('tbl_hotel_resevation_payments', 'tbl_hotel_resevation.resevation_no', '=', 'tbl_hotel_resevation_payments.resevation_no')
+
+                ->leftJoin('tbl_hotels_pre_booking', 'tbl_checkouts.related_order_id', '=', 'tbl_hotels_pre_booking.booking_id')
+                ->leftJoin('tbl_hotel_resevation', 'tbl_hotels_pre_booking.booking_id', '=', 'tbl_hotel_resevation.pre_id')
+
                 ->leftJoin('tbl_flight_resevation', 'tbl_checkouts.flight_id', '=', 'tbl_flight_resevation.id')
                 ->leftJoin('tbl_essentials_preorder', 'tbl_checkouts.related_order_id', '=', 'tbl_essentials_preorder.essential_pre_order_id')
                 ->select(
@@ -188,7 +190,7 @@ class CustomerOrdersController extends Controller
                     'tbl_lifestyle_bookings.booking_status AS LifeStyleBookStatus',
                     'tbl_lifestyle_bookings.lifestyle_booking_id AS LifeStyleBookId',
                     'tbl_hotel_resevation.cancelation_deadline AS HotelCancelDate',
-                    'tbl_hotel_resevation_payments.total_amount AS HotelTotAmount',
+                    'tbl_hotels_pre_booking.booking_total AS HotelTotAmount',
                     'tbl_hotel_resevation.no_of_adults AS NoAdults',
                     'tbl_hotel_resevation.no_of_childs AS NoChilds',
                     'tbl_hotel_resevation.bed_type AS BedType',

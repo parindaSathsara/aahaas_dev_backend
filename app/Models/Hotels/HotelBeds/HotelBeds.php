@@ -140,12 +140,7 @@ class HotelBeds extends Model
             $todayDate = Carbon::now()->format('Y-m-d');
             $_30DaysAfterDate = date('Y-m-d', strtotime('+1 days', strtotime($todayDate)));
 
-            // $URL_1 = 'https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels?fields=all&language=ENG&from=1&to=40&useSecondaryLanguage=false';
-
             $URL_1 = 'https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels?fields=hotelCodes,images&language=ENG&from=1&to=50&useSecondaryLanguage=false';
-
-            $URL_2 = 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels';
-
 
             $response_1 = Http::withHeaders($this->getHeader())->get($URL_1)->json();
 
@@ -790,7 +785,7 @@ class HotelBeds extends Model
 
                 if ($response['booking']['reference']) {
                     $bookingRef = $response['booking']['reference'];
-                    return $this->getHotelBedsHotelBookingDetails($bookingRef, $UserId, $oid, $hotelpreid);
+                    return $this->getHotelBedsHotelBookingDetails($bookingRef, $UserId, $oid, $hotelpreid, $rateKey);
                 } else {
                     return response([
                         'status' => 400,
@@ -806,7 +801,7 @@ class HotelBeds extends Model
     /***** Booking confirmation for Hotel beds API End *****/
 
     /***** Get Booking Details Hotel beds API *****/
-    public function getHotelBedsHotelBookingDetails($refId, $UId, $oid, $hotelpreid)
+    public function getHotelBedsHotelBookingDetails($refId, $UId, $oid, $hotelpreid, $rateKey)
     {
         try {
             $bookingID = $refId;
@@ -854,7 +849,7 @@ class HotelBeds extends Model
 
 
 
-            $hotelRes = $this->hotel_reservation->makeHotelReservation($bookingRef, $HolderFullName, $resevationDate, $hotelName, $checkinTime, $checkoutTime, $noOfAD, $noOfCH, $bedType, $roomType, $noOfRooms, $boardCode, $remarks, $resevationPlatform, $resevationStatus, $currency, $cancelation, $modification, $cancelation_amount, $cancelation_deadline, $created_at, $updated_at, $user_Id);
+            $hotelRes = $this->hotel_reservation->makeHotelReservation($rateKey, $bookingRef, $HolderFullName, $resevationDate, $hotelName, $checkinTime, $checkoutTime, $noOfAD, $noOfCH, $bedType, $roomType, $noOfRooms, $boardCode, $remarks, $resevationPlatform, $resevationStatus, $currency, $cancelation, $modification, $cancelation_amount, $cancelation_deadline, $user_Id);
 
             // return $hotelRes;
             $this->main_checkout->checkoutOrderHotel($oid, $hotelRes, $totalAmount, $currency, $user_Id, $hotelpreid);
@@ -1066,8 +1061,18 @@ class HotelBeds extends Model
             $response = Http::withHeaders($this->getHeader())
                 ->post('https://api.test.hotelbeds.com/hotel-api/1.0/hotels', $SubArray)->json();
 
+            $codes = array();
+
+            foreach ($response['hotels']['hotels'] as $res) {
+                $codes[] = $res['code'];
+            }
+            // return implode(',', $codes);
+            $apiCall = Http::withHeaders($this->getHeader())
+                ->get('https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels?codes=' . implode(',', $codes) . '&fields=description')->json();
+
             // return $response;
 
+            // return $apiCall;
             if ($response['hotels']['total'] == 0) {
                 return response([
                     'status' => 404,
@@ -1075,11 +1080,11 @@ class HotelBeds extends Model
                 ]);
             } else {
 
-                return $this->filterImagesForDestinationWiseHotels($response['hotels']);
-                // return response([
-                //     'status' => 200,
-                //     'data_set' => $response
-                // ]);
+                return response([
+                    'status' => 200,
+                    'data_set' => $response,
+                    'hotelsDescription' => $apiCall
+                ]);
             }
         } catch (\Throwable $th) {
             throw $th;
@@ -1123,8 +1128,19 @@ class HotelBeds extends Model
             $response = Http::withHeaders($this->getHeader())
                 ->post('https://api.test.hotelbeds.com/hotel-api/1.0/hotels', $SubArray)->json();
 
-            // return $response;
 
+            $codes = array();
+
+            foreach ($response['hotels']['hotels'] as $res) {
+                $codes[] = $res['code'];
+            }
+            // return implode(',', $codes);
+            $apiCall = Http::withHeaders($this->getHeader())
+                ->get('https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels?codes=' . implode(',', $codes) . '&fields=description')->json();
+
+
+
+            // return $apiCall;
             if ($response['hotels']['total'] == 0) {
                 return response([
                     'status' => 404,
@@ -1132,11 +1148,11 @@ class HotelBeds extends Model
                 ]);
             } else {
 
-                return $this->filterImagesForDestinationWiseHotels($response['hotels']);
-                // return response([
-                //     'status' => 200,
-                //     'data_set' => $response
-                // ]);
+                return response([
+                    'status' => 200,
+                    'data_set' => $response,
+                    'hotelsDescription' => $apiCall
+                ]);
             }
         } catch (\Throwable $th) {
 
