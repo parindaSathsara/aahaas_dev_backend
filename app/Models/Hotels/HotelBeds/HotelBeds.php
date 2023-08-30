@@ -849,7 +849,7 @@ class HotelBeds extends Model
 
 
 
-            $hotelRes = $this->hotel_reservation->makeHotelReservation($rateKey, $bookingRef, $HolderFullName, $resevationDate, $hotelName, $checkinTime, $checkoutTime, $noOfAD, $noOfCH, $bedType, $roomType, $noOfRooms, $boardCode, $remarks, $resevationPlatform, $resevationStatus, $currency, $cancelation, $modification, $cancelation_amount, $cancelation_deadline, $user_Id);
+            $hotelRes = $this->hotel_reservation->makeHotelReservation($rateKey, $bookingRef, $HolderFullName, $resevationDate, $hotelName, $checkinTime, $checkoutTime, $noOfAD, $noOfCH, $bedType, $roomType, $noOfRooms, $boardCode, $remarks, $resevationPlatform, $resevationStatus, $currency, $cancelation, $modification, $cancelation_amount, $cancelation_deadline, $user_Id, $hotelpreid);
 
             // return $hotelRes;
             $this->main_checkout->checkoutOrderHotel($oid, $hotelRes, $totalAmount, $currency, $user_Id, $hotelpreid);
@@ -1031,10 +1031,11 @@ class HotelBeds extends Model
     /***** Booking Cancellation and Email Sending Hotel beds API End *****/
 
     //destinations wise Hotel search
-    public function fetchDestinationWiseHotels($checkin, $checkout, $rooms, $adults, $children, $latitude, $longitude)
+    public function fetchDestinationWiseHotels($checkin, $checkout, $rooms, $adults, $children, $latitude, $longitude, $age)
     {
         try {
             $DestinationArray = [];
+            $ChildAges = explode(',', $age);
 
             ini_set('max_execution_time', 360);
 
@@ -1048,6 +1049,13 @@ class HotelBeds extends Model
             $DestinationArray['geolocation']['radius'] = 20;
             $DestinationArray['geolocation']['unit'] = 'km';
 
+            if ($DestinationArray['occupancies']['children'] > 0) {
+                for ($cc = 0; $cc < $DestinationArray['occupancies']['children']; $cc++) {
+                    // for($x; $x < )
+                    $DestinationArray['occupancies']['paxes'][] = ['type' => 'CH', 'age' => $ChildAges[$cc]];
+                }
+            }
+
             $SubArray = [];
 
             $SubArray['stay']['checkIn'] = $DestinationArray['stay']['checkIn'];
@@ -1058,10 +1066,16 @@ class HotelBeds extends Model
             $SubArray['geolocation']['radius'] = $DestinationArray['geolocation']['radius'];
             $SubArray['geolocation']['unit'] = $DestinationArray['geolocation']['unit'];
 
+
+            // return $SubArray;
+
             $response = Http::withHeaders($this->getHeader())
                 ->post('https://api.test.hotelbeds.com/hotel-api/1.0/hotels', $SubArray)->json();
 
+            return $response;
+
             $codes = array();
+
 
             foreach ($response['hotels']['hotels'] as $res) {
                 $codes[] = $res['code'];

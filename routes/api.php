@@ -80,6 +80,7 @@ use App\Http\Controllers\Customer\ProductReview\ProductReviewController;
 use App\Http\Controllers\LifeStyles\Admin\LifeStyleCreatorController;
 use App\Models\Currencies;
 use App\Http\Controllers\Hotels\CommonHotel_APIController;
+use App\Models\Hotel\HotelMeta\HotelMeta;
 use App\Models\Hotels\HotelInventory;
 use App\Models\Lifestyle\LifeStyle;
 
@@ -715,5 +716,6 @@ Route::group(['middleware' => 'api'], function () {
     Route::get('/get_currency/{value}', [Currencies::class, 'getCurrency']);
     Route::post('/convert_currency/{value}/{value1}', [Currencies::class, 'convertCurrency']);
     Route::post('/check_email', [SellerController::class, 'sendEmail']);
-    Route::post('/aahaas_hotel_push_meta', [CommonHotel_APIController::class, 'pushAahaasHotel']);
+    // Route::post('/aahaas_hotel_push_meta', [CommonHotel_APIController::class, 'pushAahaasHotel']);
+    Route::post('/hotel_meta_data_push', [HotelMeta::class, 'createHotelDetailsBeds']);
 });

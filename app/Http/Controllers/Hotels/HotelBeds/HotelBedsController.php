@@ -660,8 +660,9 @@ class HotelBedsController extends Controller
             $Adults = $request['adults'];
             $Childs = $request['childs'];
             $Rooms = $request['rooms'];
+            $Age = $request['age'];
 
-            $response = $this->hotel_beds->fetchDestinationWiseHotels($CheckIn, $CheckOut, $Rooms, $Adults, $Childs, $Latitude, $Longitude);
+            $response = $this->hotel_beds->fetchDestinationWiseHotels($CheckIn, $CheckOut, $Rooms, $Adults, $Childs, $Latitude, $Longitude, $Age);
 
             return $response;
         } catch (\Throwable $th) {
