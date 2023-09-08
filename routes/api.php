@@ -80,6 +80,7 @@ use App\Http\Controllers\Customer\ProductReview\ProductReviewController;
 use App\Http\Controllers\LifeStyles\Admin\LifeStyleCreatorController;
 use App\Models\Currencies;
 use App\Http\Controllers\Hotels\CommonHotel_APIController;
+use App\Http\Controllers\Hotels\HotelMetaController;
 use App\Models\Hotel\HotelMeta\HotelMeta;
 use App\Models\Hotels\HotelInventory;
 use App\Models\Lifestyle\LifeStyle;
@@ -429,7 +430,14 @@ Route::group(['middleware' => 'api'], function () {
 
 
 
-
+    /* ------------------------------------------------------------------------------- */
+    /* ------------------------------------------------------------------------------- */
+    /* -------------------------------Hotel META API Routes--------------------------- */
+    /* ------------------------------------------------------------------------------- */
+    /* ------------------------------------------------------------------------------- */
+    Route::get('/get_hotel_meta_hotels', [HotelMetaController::class, 'index']);
+    Route::post('/fetch_single_hotel_rates/{id}', [HotelMetaController::class, 'fetchRatesForEachHotel']);
+    Route::post('/search_hotel_by_latlon', [HotelMetaController::class, 'getHotelsByLatLon']);
 
 
     /* ------------------------------------------------------------------------------- */

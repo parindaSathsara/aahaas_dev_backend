@@ -76,6 +76,7 @@ class HotelBeds extends Model
         try {
             $MainArray = [];
 
+
             $DateTime = Carbon::now()->toDateTimeString();
 
             $MainArray['stay']['checkIn'] = $checkingdate;
@@ -96,15 +97,18 @@ class HotelBeds extends Model
                 }
             }
 
-            $ReqHotelCode = (int)$hotelcode;
+            $ReqHotelCode = $hotelcode;
 
-            $MainArray['hotels']['hotel'] = [$ReqHotelCode];
+            // return $ReqHotelCode;
+            $MainArray['hotels']['hotel'] = $ReqHotelCode;
 
             $sub_array = [];
 
             $sub_array['stay'] = $MainArray['stay'];
             $sub_array['occupancies'] = [$MainArray['occupancies']];
             $sub_array['hotels'] = $MainArray['hotels'];
+
+            // return $sub_array;
 
             $response = Http::withHeaders($this->getHeader())
                 ->post('https://api.test.hotelbeds.com/hotel-api/1.0/hotels', $sub_array)->json();
