@@ -428,7 +428,7 @@ class HotelMetaController extends Controller
                                     $dataset['sortCriteria'] = null;
                                     $dataset['source'] = 'hotelBeds';
                                     $dataset['userId'] = gethostbyname(gethostname());
-                                    $dataset['autoFetch'] = true;
+                                    $dataset['autoFetch'] = false;
                                     $dataset['groupId'] = $query[0]->id;
                                     $dataset['provider'] = 'hotelBeds';
                                     $this->hotel_rates->createHotelRates($dataset);
@@ -479,7 +479,7 @@ class HotelMetaController extends Controller
                                     $dataset['sortCriteria'] = null;
                                     $dataset['source'] = 'hotelBeds';
                                     $dataset['userId'] = gethostbyname(gethostname());
-                                    $dataset['autoFetch'] = true;
+                                    $dataset['autoFetch'] = false;
                                     $dataset['groupId'] = $query[0]->id;
                                     $dataset['provider'] = 'hotelBeds';
                                     $this->hotel_rates->createHotelRates($dataset);
@@ -489,10 +489,10 @@ class HotelMetaController extends Controller
                     }
                 }
 
-                $query = DB::table('aahaas_hotel_meta')
+                $queryF = DB::table('aahaas_hotel_meta')
                     ->where(
                         [
-                            'aahaas_rates_meta.hotelCode' => $hotel_id,
+                            'aahaas_rates_meta.fetchDate' => Carbon::now()->format('Y-m-d'),
                             'aahaas_rates_meta.autoFetch' => false,
                             'aahaas_rates_meta.userId' => gethostbyname(gethostname()),
                             'aahaas_rates_meta.checkIn' => $this->check_in,
@@ -505,7 +505,7 @@ class HotelMetaController extends Controller
                     ->groupBy('aahaas_rates_meta.groupId')
                     ->get();
 
-                return $query;
+                return $queryF;
             }
 
             // return $response;
