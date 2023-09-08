@@ -348,6 +348,8 @@ class HotelMetaController extends Controller
     public function getHotelsByLatLon(Request $request)
     {
         try {
+            $dataset = array();
+            $hotel_id = array();
 
             $this->latitude = $request['latitude'];
             $this->longitude = $request['longitude'];
@@ -363,21 +365,151 @@ class HotelMetaController extends Controller
 
             // return $response;
 
-            foreach ($response['hotels']['hotels'] as $res) {
-                $query = DB::table('aahaas_hotel_meta')->where('hotelCode', $res['code'])->select('*')->get();
+            if ($response['hotels']['total'] == 0) {
 
-                if (count($query) > 0) {
+                return response([
+                    'status' => 400,
+                    'data_r' => 'No Hotels avaialable'
+                ]);
+            } else {
+                foreach ($response['hotels']['hotels'] as $res) {
+                    $hotel_id[] = $res['code'];
+                    //checking whether hotel available in local or not
+                    $query = DB::table('aahaas_hotel_meta')->where('hotelCode', $res['code'])->select('*')->get();
 
-                    $q2 = DB::table('aahaas_rates_meta')->where(['hotelCode' => $query[0]['hotelCode'], 'provider' => 'hotelBeds'])->select('*')->get();
+                    if (count($query) > 0) {
+                        //checking the specific hotel has rates available in rates table
+                        $q2 = DB::table('aahaas_rates_meta')->where(['groupId' => $query[0]->id, 'userId' => gethostbyname(gethostname()), 'autoFetch' => false])->select('*')->get();
+
+                        if (count($q2) > 0) {
+                            DB::table('aahaas_rates_meta')->where('groupId', $query[0]->id)->delete();
+
+                            foreach ($res['rooms'] as $rates) {
+                                foreach ($rates['rates'] as $rate) {
+                                    // $hb_rates[] = $rate['net'];
+                                    $dataset['code'] = $res['code'];
+                                    $dataset['name'] = $res['name'];
+                                    $dataset['roomCode'] = $rates['code'];
+                                    $dataset['roomName'] = $rates['name'];
+                                    $dataset['roomCategory'] = null;
+                                    $dataset['rateKey'] = $rate['rateKey'];
+                                    $dataset['rateClass'] = $rate['rateClass'];
+                                    $dataset['rateType'] = $rate['rateType'];
+                                    $dataset['net'] = $rate['net'];
+                                    $dataset['adultRate'] = 0.00;
+                                    $dataset['childWithBedRate'] = 0.00;
+                                    $dataset['childWithNoBedRate'] = 0.00;
+                                    $dataset['allotment'] = $rate['allotment'];
+                                    $dataset['paymentType'] = $rate['paymentType'];
+                                    $dataset['packaging'] = $rate['packaging'];
+                                    $dataset['boardCode'] = $rate['boardCode'];
+                                    $dataset['boardName'] = $rate['boardName'];
+                                    $dataset['cancellationAmount'] = $rate['cancellationPolicies'][0]['amount'];
+                                    $dataset['cancellationFrom'] = $rate['cancellationPolicies'][0]['amount'];
+                                    $dataset['taxIncluded'] = null;
+                                    $dataset['taxAmount'] = null;
+                                    $dataset['taxCurrency'] = null;
+                                    $dataset['clientAmount'] = null;
+                                    $dataset['clientCurrency'] = null;
+                                    $dataset['allIncluded'] = null;
+                                    $dataset['offerCode'] = in_array('offers', $rates['rates']) ? $rate['offers'][0]['code'] : null;
+                                    $dataset['offerName'] = in_array('offers', $rates['rates']) ? $rate['offers'][0]['name'] : null;
+                                    $dataset['offerAmount'] = in_array('offers', $rates['rates']) ? $rate['offers'][0]['amount'] : null;
+                                    $dataset['discountLimit'] = null;
+                                    $dataset['minRate'] = in_array('minRate', $res['rooms']) ? $rates['minRate'] : null;
+                                    $dataset['maxRate'] = in_array('maxRate', $res['rooms']) ? $rates['maxRate'] : null;
+                                    $dataset['currency'] = in_array('currency', $res['rooms']) ? $rates['currency'] : 'EUR';
+                                    $dataset['checkIn'] = $this->check_in;
+                                    $dataset['checkOut'] = $this->check_out;
+                                    $dataset['rooms'] = $this->no_of_rooms;
+                                    $dataset['adults'] = $this->adult_count;
+                                    $dataset['children'] = $this->child_count;
+                                    $dataset['childrenAges'] = $this->child_ages;
+                                    $dataset['sortCriteria'] = null;
+                                    $dataset['source'] = 'hotelBeds';
+                                    $dataset['userId'] = gethostbyname(gethostname());
+                                    $dataset['autoFetch'] = true;
+                                    $dataset['groupId'] = $query[0]->id;
+                                    $dataset['provider'] = 'hotelBeds';
+                                    $this->hotel_rates->createHotelRates($dataset);
+                                }
+                            }
+                        } else {
+                            foreach ($res['rooms'] as $rates) {
+                                foreach ($rates['rates'] as $rate) {
+                                    // $hb_rates[] = $rate['net'];
+                                    $dataset['code'] = $res['code'];
+                                    $dataset['name'] = $res['name'];
+                                    $dataset['roomCode'] = $rates['code'];
+                                    $dataset['roomName'] = $rates['name'];
+                                    $dataset['roomCategory'] = null;
+                                    $dataset['rateKey'] = $rate['rateKey'];
+                                    $dataset['rateClass'] = $rate['rateClass'];
+                                    $dataset['rateType'] = $rate['rateType'];
+                                    $dataset['net'] = $rate['net'];
+                                    $dataset['adultRate'] = 0.00;
+                                    $dataset['childWithBedRate'] = 0.00;
+                                    $dataset['childWithNoBedRate'] = 0.00;
+                                    $dataset['allotment'] = $rate['allotment'];
+                                    $dataset['paymentType'] = $rate['paymentType'];
+                                    $dataset['packaging'] = $rate['packaging'];
+                                    $dataset['boardCode'] = $rate['boardCode'];
+                                    $dataset['boardName'] = $rate['boardName'];
+                                    $dataset['cancellationAmount'] = $rate['cancellationPolicies'][0]['amount'];
+                                    $dataset['cancellationFrom'] = $rate['cancellationPolicies'][0]['amount'];
+                                    $dataset['taxIncluded'] = null;
+                                    $dataset['taxAmount'] = null;
+                                    $dataset['taxCurrency'] = null;
+                                    $dataset['clientAmount'] = null;
+                                    $dataset['clientCurrency'] = null;
+                                    $dataset['allIncluded'] = null;
+                                    $dataset['offerCode'] = in_array('offers', $rates['rates']) ? $rate['offers'][0]['code'] : null;
+                                    $dataset['offerName'] = in_array('offers', $rates['rates']) ? $rate['offers'][0]['name'] : null;
+                                    $dataset['offerAmount'] = in_array('offers', $rates['rates']) ? $rate['offers'][0]['amount'] : null;
+                                    $dataset['discountLimit'] = null;
+                                    $dataset['minRate'] = in_array('minRate', $res['rooms']) ? $rates['minRate'] : null;
+                                    $dataset['maxRate'] = in_array('maxRate', $res['rooms']) ? $rates['maxRate'] : null;
+                                    $dataset['currency'] = in_array('currency', $res['rooms']) ? $rates['currency'] : 'EUR';
+                                    $dataset['checkIn'] = $this->check_in;
+                                    $dataset['checkOut'] = $this->check_out;
+                                    $dataset['rooms'] = $this->no_of_rooms;
+                                    $dataset['adults'] = $this->adult_count;
+                                    $dataset['children'] = $this->child_count;
+                                    $dataset['childrenAges'] = $this->child_ages;
+                                    $dataset['sortCriteria'] = null;
+                                    $dataset['source'] = 'hotelBeds';
+                                    $dataset['userId'] = gethostbyname(gethostname());
+                                    $dataset['autoFetch'] = true;
+                                    $dataset['groupId'] = $query[0]->id;
+                                    $dataset['provider'] = 'hotelBeds';
+                                    $this->hotel_rates->createHotelRates($dataset);
+                                }
+                            }
+                        }
+                    }
                 }
+
+                $query = DB::table('aahaas_hotel_meta')
+                    ->where(
+                        [
+                            'aahaas_rates_meta.hotelCode' => $hotel_id,
+                            'aahaas_rates_meta.autoFetch' => false,
+                            'aahaas_rates_meta.userId' => gethostbyname(gethostname()),
+                            'aahaas_rates_meta.checkIn' => $this->check_in,
+                            'aahaas_rates_meta.checkOut' => $this->check_out
+                        ]
+                    )
+                    ->join('aahaas_rates_meta', 'aahaas_hotel_meta.id', '=', 'aahaas_rates_meta.groupId')
+                    ->select('*')
+                    ->orderBy('aahaas_rates_meta.net', 'ASC')
+                    ->groupBy('aahaas_rates_meta.groupId')
+                    ->get();
+
+                return $query;
             }
 
             // return $response;
 
-            $dataset = array();
-
-            foreach ($response as $res) {
-            }
         } catch (\Throwable $th) {
             throw $th;
         }
