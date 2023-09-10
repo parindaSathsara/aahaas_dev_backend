@@ -57,7 +57,6 @@
              <tr>
                  <td style="text-align: left;">Category: {{$room_type}}</td>
                  <td style="text-align: center;">CWB: 0</td>
-                 <td style="text-align: right;">{{$hotelEmail}}</td>
              </tr>
 
              <tr>
@@ -87,30 +86,19 @@
                      <th style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">Room Type</th>
                      <th style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">Room/Pax Count</th>
                      <th style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">Date</th>
-                     <th style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">Rate ($)</th>
-                     <th style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">Total ($)</th>
+                     <th style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">Rate ({{$currency}})</th>
+                     <th style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">Total ({{$currency}})</th>
                  </tr>
              </thead>
              <tbody style="font-size: 14px;border-collapse: collapse;padding: 10px;">
-                 @foreach ($otherData as $main_data)
                  <tr>
-                     @if ($main_data->PaxType == 'AD' || $main_data->PaxType == 'Adult' || $main_data->PaxType == 'ADT')
                      <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">Adult</td>
-                     @else
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">Child</td>
-                     @endif
                      <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">{{$bed_type}}</td>
-                     @if ($main_data->PaxType == 'AD' || $main_data->PaxType == 'Adult' || $main_data->PaxType == 'ADT')
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">{{$main_data->AdultCount}}</td>
-                     @else
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">{{$main_data->ChildCount}}</td>
-                     @endif
+                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">{{$no_of_adults}}</td>
                      <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">{{$checkin_date}}</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">-</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">-</td>
+                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">{{$otherData->adult_rate}}</td>
+                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">{{number_format($otherData->adult_rate * $no_of_adults,2)}}</td>
                  </tr>
-                 @endforeach
-
                  <tr style="font-size: 14px;border-collapse: collapse;padding: 10px;">
                      <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;" colspan="6"></td>
                  </tr>
@@ -120,19 +108,6 @@
                      <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;" colspan="5"></td>
                  </tr>
 
-                 @foreach ($otherData as $otherdata)
-                 @if ($otherdata->PaxType == 'CH')
-                 <tr style="font-size: 14px;border-collapse: collapse;padding: 10px;">
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">{{$otherdata->SerType}}</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">-</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">{{$otherdata->SerChildCount}}</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">{{$otherdata->SerDate}}</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">${{$otherdata->SerPerPrice}}</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">${{$otherdata->SerPerPrice}}</td>
-                 </tr>
-                 @endif
-                 @endforeach
-
                  <tr style="font-size: 14px;border-collapse: collapse;padding: 10px;">
                      <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;" colspan="6"></td>
                  </tr>
@@ -141,28 +116,6 @@
                      <th style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">Meal Related</th>
                      <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;" colspan="5"></td>
                  </tr>
-
-                 @foreach ($meal_data as $mealdata)
-                 @if ($mealdata->adult_count >= '1')
-                 <tr style="font-size: 14px;border-collapse: collapse;padding: 10px;">
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">{{$mealdata->meal_plan}} Adult</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">-</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">{{$mealdata->adult_count}}</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">{{$mealdata->date}}</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">${{$mealdata->unit_price}}</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">${{$mealdata->unit_price}}</td>
-                 </tr>
-                 @elseif($mealdata->child_count >= '1')
-                 <tr style="font-size: 14px;border-collapse: collapse;padding: 10px;">
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">{{$mealdata->meal_plan}} Child</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">-</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">{{$mealdata->child_count}}</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">{{$mealdata->date}}</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">${{$mealdata->unit_price}}</td>
-                     <td style="border: 1px solid #cecece;text-align: center;border-collapse: collapse;padding: 10px;">${{$mealdata->unit_price}}</td>
-                 </tr>
-                 @endif
-                 @endforeach
              </tbody>
              <tfoot>
                  <tr style="font-size: 14px;border-collapse: collapse;padding: 10px;">

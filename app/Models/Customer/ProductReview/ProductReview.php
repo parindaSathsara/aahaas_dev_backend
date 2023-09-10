@@ -65,15 +65,33 @@ class ProductReview extends Model
 
             $count = array();
 
+            $starArray = [];
+
+            $starArray['zeroStar'] = 0;
+            $starArray['oneStar'] = 0;
+            $starArray['twoStar'] = 0;
+            $starArray['threeStar'] = 0;
+            $starArray['fourStar'] = 0;
+            $starArray['fiveStar'] = 0;
+
             foreach ($rates as $rate) {
                 $count[] = $rate->rating;
+                if ($rate->rating == "0") {
+                    $starArray['zeroStar'] += 1;
+                } else if ($rate->rating == "1") {
+                    $starArray['oneStar'] += 1;
+                } else if ($rate->rating == "2") {
+                    $starArray['twoStar'] += 1;
+                } else if ($rate->rating == "3") {
+                    $starArray['threeStar'] += 1;
+                } else if ($rate->rating == "4") {
+                    $starArray['fourStar'] += 1;
+                } else if ($rate->rating == "5") {
+                    $starArray['fiveStar'] += 1;
+                }
             }
 
-            $array_count = array_count_values($count);
-
-            // return $prod_reviews;
-
-            if (count($array_count) === 0) {
+            if (count($rates) === 0) {
 
                 return response([
                     'status' => 404,
@@ -81,9 +99,10 @@ class ProductReview extends Model
                 ]);
             } else {
 
-                $rating = ((1 * $array_count['1']) + (2 * $array_count['2']) + (3 * $array_count['3']) + (4 * $array_count['4']) + (5 * $array_count['5'])) / ($array_count['1'] + $array_count['2'] + $array_count['3'] + $array_count['4'] + $array_count['5']);
+                $rating = ((1 * $starArray['oneStar'])  + (2 * $starArray['twoStar']) + (3 * $starArray['threeStar']) + (4 * $starArray['fourStar']) + (5 * $starArray['fiveStar'])) / (array_sum($starArray));
 
                 $final_rating = number_format((float)$rating, 1, '.', '');
+                // return $final_rating;
 
                 return response([
                     'status' => 200,

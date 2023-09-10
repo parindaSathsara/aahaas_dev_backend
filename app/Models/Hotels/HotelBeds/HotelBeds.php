@@ -76,6 +76,7 @@ class HotelBeds extends Model
         try {
             $MainArray = [];
 
+
             $DateTime = Carbon::now()->toDateTimeString();
 
             $MainArray['stay']['checkIn'] = $checkingdate;
@@ -96,15 +97,18 @@ class HotelBeds extends Model
                 }
             }
 
-            $ReqHotelCode = (int)$hotelcode;
+            $ReqHotelCode = $hotelcode;
 
-            $MainArray['hotels']['hotel'] = [$ReqHotelCode];
+            // return $ReqHotelCode;
+            $MainArray['hotels']['hotel'] = $ReqHotelCode;
 
             $sub_array = [];
 
             $sub_array['stay'] = $MainArray['stay'];
             $sub_array['occupancies'] = [$MainArray['occupancies']];
             $sub_array['hotels'] = $MainArray['hotels'];
+
+            // return $sub_array;
 
             $response = Http::withHeaders($this->getHeader())
                 ->post('https://api.test.hotelbeds.com/hotel-api/1.0/hotels', $sub_array)->json();
@@ -140,12 +144,7 @@ class HotelBeds extends Model
             $todayDate = Carbon::now()->format('Y-m-d');
             $_30DaysAfterDate = date('Y-m-d', strtotime('+1 days', strtotime($todayDate)));
 
-            // $URL_1 = 'https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels?fields=all&language=ENG&from=1&to=40&useSecondaryLanguage=false';
-
             $URL_1 = 'https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels?fields=hotelCodes,images&language=ENG&from=1&to=50&useSecondaryLanguage=false';
-
-            $URL_2 = 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels';
-
 
             $response_1 = Http::withHeaders($this->getHeader())->get($URL_1)->json();
 
@@ -790,7 +789,7 @@ class HotelBeds extends Model
 
                 if ($response['booking']['reference']) {
                     $bookingRef = $response['booking']['reference'];
-                    return $this->getHotelBedsHotelBookingDetails($bookingRef, $UserId, $oid, $hotelpreid);
+                    return $this->getHotelBedsHotelBookingDetails($bookingRef, $UserId, $oid, $hotelpreid, $rateKey);
                 } else {
                     return response([
                         'status' => 400,
@@ -806,7 +805,7 @@ class HotelBeds extends Model
     /***** Booking confirmation for Hotel beds API End *****/
 
     /***** Get Booking Details Hotel beds API *****/
-    public function getHotelBedsHotelBookingDetails($refId, $UId, $oid, $hotelpreid)
+    public function getHotelBedsHotelBookingDetails($refId, $UId, $oid, $hotelpreid, $rateKey)
     {
         try {
             $bookingID = $refId;
@@ -854,7 +853,7 @@ class HotelBeds extends Model
 
 
 
-            $hotelRes = $this->hotel_reservation->makeHotelReservation($bookingRef, $HolderFullName, $resevationDate, $hotelName, $checkinTime, $checkoutTime, $noOfAD, $noOfCH, $bedType, $roomType, $noOfRooms, $boardCode, $remarks, $resevationPlatform, $resevationStatus, $currency, $cancelation, $modification, $cancelation_amount, $cancelation_deadline, $created_at, $updated_at, $user_Id);
+            $hotelRes = $this->hotel_reservation->makeHotelReservation($rateKey, $bookingRef, $HolderFullName, $resevationDate, $hotelName, $checkinTime, $checkoutTime, $noOfAD, $noOfCH, $bedType, $roomType, $noOfRooms, $boardCode, $remarks, $resevationPlatform, $resevationStatus, $currency, $cancelation, $modification, $cancelation_amount, $cancelation_deadline, $user_Id, $hotelpreid);
 
             // return $hotelRes;
             $this->main_checkout->checkoutOrderHotel($oid, $hotelRes, $totalAmount, $currency, $user_Id, $hotelpreid);
@@ -1036,10 +1035,11 @@ class HotelBeds extends Model
     /***** Booking Cancellation and Email Sending Hotel beds API End *****/
 
     //destinations wise Hotel search
-    public function fetchDestinationWiseHotels($checkin, $checkout, $rooms, $adults, $children, $latitude, $longitude)
+    public function fetchDestinationWiseHotels($checkin, $checkout, $rooms, $adults, $children, $latitude, $longitude, $age)
     {
         try {
             $DestinationArray = [];
+            $ChildAges = explode(',', $age);
 
             ini_set('max_execution_time', 360);
 
@@ -1048,6 +1048,86 @@ class HotelBeds extends Model
             $DestinationArray['occupancies']['rooms'] = (int)$rooms;
             $DestinationArray['occupancies']['adults'] = (int)$adults;
             $DestinationArray['occupancies']['children'] = (int)$children;
+            $DestinationArray['geolocation']['latitude'] = (float)$latitude;
+            $DestinationArray['geolocation']['longitude'] = (float)$longitude;
+            $DestinationArray['geolocation']['radius'] = 20;
+            $DestinationArray['geolocation']['unit'] = 'km';
+
+            if ($DestinationArray['occupancies']['children'] > 0) {
+                for ($cc = 0; $cc < $DestinationArray['occupancies']['children']; $cc++) {
+                    // for($x; $x < )
+                    $DestinationArray['occupancies']['paxes'][] = ['type' => 'CH', 'age' => $ChildAges[$cc]];
+                }
+            }
+
+            $SubArray = [];
+
+            $SubArray['stay']['checkIn'] = $DestinationArray['stay']['checkIn'];
+            $SubArray['stay']['checkOut'] = $DestinationArray['stay']['checkOut'];
+            $SubArray['occupancies'] = [$DestinationArray['occupancies']];
+            $SubArray['geolocation']['latitude'] = $DestinationArray['geolocation']['latitude'];
+            $SubArray['geolocation']['longitude'] = $DestinationArray['geolocation']['longitude'];
+            $SubArray['geolocation']['radius'] = $DestinationArray['geolocation']['radius'];
+            $SubArray['geolocation']['unit'] = $DestinationArray['geolocation']['unit'];
+
+
+            // return $SubArray;
+
+            $response = Http::withHeaders($this->getHeader())
+                ->post('https://api.test.hotelbeds.com/hotel-api/1.0/hotels', $SubArray)->json();
+
+            return $response;
+
+            $codes = array();
+
+
+            foreach ($response['hotels']['hotels'] as $res) {
+                $codes[] = $res['code'];
+            }
+            // return implode(',', $codes);
+            $apiCall = Http::withHeaders($this->getHeader())
+                ->get('https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels?codes=' . implode(',', $codes) . '&fields=description')->json();
+
+            // return $response;
+
+            // return $apiCall;
+            if ($response['hotels']['total'] == 0) {
+                return response([
+                    'status' => 404,
+                    'data_set' => 0
+                ]);
+            } else {
+
+                return response([
+                    'status' => 200,
+                    'data_set' => $response,
+                    'hotelsDescription' => $apiCall
+                ]);
+            }
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
+    //get hotel beds dataset based on customer current location
+    public function fetchHotelsBedsBasedOnCurrentLocation($latitude, $longitude)
+    {
+        try {
+
+            $DestinationArray = [];
+
+            ini_set('max_execution_time', 360);
+
+            $todayDate = Carbon::now()->format('Y-m-d');
+            $_30DaysAfterDate = date('Y-m-d', strtotime('+1 days', strtotime($todayDate)));
+            $checkInDate = $todayDate;
+            $checkOutDate = $_30DaysAfterDate;
+
+            $DestinationArray['stay']['checkIn'] = $checkInDate;
+            $DestinationArray['stay']['checkOut'] = $checkOutDate;
+            $DestinationArray['occupancies']['rooms'] = 1;
+            $DestinationArray['occupancies']['adults'] = 2;
+            $DestinationArray['occupancies']['children'] = 0;
             $DestinationArray['geolocation']['latitude'] = (float)$latitude;
             $DestinationArray['geolocation']['longitude'] = (float)$longitude;
             $DestinationArray['geolocation']['radius'] = 20;
@@ -1066,8 +1146,19 @@ class HotelBeds extends Model
             $response = Http::withHeaders($this->getHeader())
                 ->post('https://api.test.hotelbeds.com/hotel-api/1.0/hotels', $SubArray)->json();
 
-            // return $response;
 
+            $codes = array();
+
+            foreach ($response['hotels']['hotels'] as $res) {
+                $codes[] = $res['code'];
+            }
+            // return implode(',', $codes);
+            $apiCall = Http::withHeaders($this->getHeader())
+                ->get('https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels?codes=' . implode(',', $codes) . '&fields=description')->json();
+
+
+
+            // return $apiCall;
             if ($response['hotels']['total'] == 0) {
                 return response([
                     'status' => 404,
@@ -1075,16 +1166,19 @@ class HotelBeds extends Model
                 ]);
             } else {
 
-                return $this->filterImagesForDestinationWiseHotels($response['hotels']);
-                // return response([
-                //     'status' => 200,
-                //     'data_set' => $response
-                // ]);
+                return response([
+                    'status' => 200,
+                    'data_set' => $response,
+                    'hotelsDescription' => $apiCall
+                ]);
             }
         } catch (\Throwable $th) {
+
             throw $th;
         }
     }
+
+    // ************** ############### *****************
 
     public function filterImagesForDestinationWiseHotels($response)
     {
@@ -1119,61 +1213,6 @@ class HotelBeds extends Model
     }
 
     // ************** ############### *****************
-
-    //get hotel beds dataset based on customer current location
-    public function fetchHotelsBedsBasedOnCurrentLocation($country_code)
-    {
-        try {
-
-            ini_set('max_execution_time', 360);
-            $EndURL = 'https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels?';
-
-            //https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels?fields=all&countryCodes=LK&language=ENG&from=1&useSecondaryLanguage=false&to=100
-            //https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels?fields=all&countryCodes=LK&language=ENG&from=1&useSecondaryLanguage=false&to=100
-
-            $Dataset['fields'] = 'all';
-            $Dataset['countryCode'] = $country_code;
-            $Dataset['language'] = 'ENG';
-            $Dataset['from'] = 1;
-            $Dataset['useSecondaryLanguage'] = 'false';
-            $Dataset['to'] = 100;
-
-            $EndURL .= http_build_query($Dataset);
-
-
-            $response = Http::withHeaders($this->getHeader())->get($EndURL)->json();
-
-            Cache::add('hotel-data', $response);
-
-            return response([
-                'status' => 200,
-                'type' => 'caching',
-                'hotel_data' => $response
-            ]);
-
-            if (Cache::has('hotel-data')) {
-                return response([
-                    'status' => 200,
-                    'type' => 'cache',
-                    'hotel_data' => Cache::get('hotel-data')
-                ]);
-            } else {
-
-                $response = Http::withHeaders($this->getHeader())->get($EndURL)->json();
-
-                Cache::add('hotel-data', $response);
-
-                return response([
-                    'status' => 200,
-                    'type' => 'caching',
-                    'hotel_data' => Cache::get('hotel-data')
-                ]);
-            }
-        } catch (\Throwable $th) {
-
-            throw $th;
-        }
-    }
 
     public function getHotelFacilities()
     {

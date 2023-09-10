@@ -80,6 +80,8 @@ use App\Http\Controllers\Customer\ProductReview\ProductReviewController;
 use App\Http\Controllers\LifeStyles\Admin\LifeStyleCreatorController;
 use App\Models\Currencies;
 use App\Http\Controllers\Hotels\CommonHotel_APIController;
+use App\Http\Controllers\Hotels\HotelMetaController;
+use App\Models\Hotel\HotelMeta\HotelMeta;
 use App\Models\Hotels\HotelInventory;
 use App\Models\Lifestyle\LifeStyle;
 
@@ -306,9 +308,9 @@ Route::group(['middleware' => 'api'], function () {
     Route::post('/create_hotel_inventory_new', [HotelInventoryController::class, 'createNewHotelInventory']);
     Route::get('/fetch_all_inventories', [HotelInventory::class, 'fetchAllInventories']);
 
-    
-    
-    
+
+
+
     /* RoomRate Controller Routes ----------  */
     Route::get('/get-roomrate-data', [RoomRateController::class, 'index']);
     Route::post('/create-new-roomrate', [RoomRateController::class, 'createNewRoomRate']);
@@ -316,7 +318,7 @@ Route::group(['middleware' => 'api'], function () {
     Route::post('/update-roomrate-data/{id}', [RoomRateController::class, 'updateRoomRateData']);
     Route::get('/fetch-roomrate-hotel', [RoomRateController::class, 'getRoomRateDataWithHotel']);
     Route::post('/create_new_room_rate', [RoomRateController::class, 'createNewHotelRoomRate']);
-    
+
     /* ServiceRate Controller Routes ----------  */
     Route::get('/get-servicerate-data', [ServiceRateController::class, 'index']);
     Route::post('/create-new-servicerate', [ServiceRateController::class, 'createNewServiceRate']);
@@ -396,7 +398,7 @@ Route::group(['middleware' => 'api'], function () {
 
     Route::get('/get-user-currency', [HotelBedsController::class, 'getBookingsById']);
 
-    Route::get('/get-hotel-details-by-user-current-loc/{countrycode}', [HotelBedsController::class, 'availabilityBasedOnCurrentLocation']);
+    Route::get('/get-hotel-details-by-user-current-loc/{lat}/{lon}', [HotelBedsController::class, 'availabilityBasedOnCurrentLocation']);
     Route::get('/get-hotelfacility-hotelbeds', [HotelBedsController::class, 'getHotelFacilities']);
 
 
@@ -428,7 +430,14 @@ Route::group(['middleware' => 'api'], function () {
 
 
 
-
+    /* ------------------------------------------------------------------------------- */
+    /* ------------------------------------------------------------------------------- */
+    /* -------------------------------Hotel META API Routes--------------------------- */
+    /* ------------------------------------------------------------------------------- */
+    /* ------------------------------------------------------------------------------- */
+    Route::get('/get_hotel_meta_hotels', [HotelMetaController::class, 'index']);
+    Route::post('/fetch_single_hotel_rates/{id}', [HotelMetaController::class, 'fetchRatesForEachHotel']);
+    Route::post('/search_hotel_by_latlon', [HotelMetaController::class, 'getHotelsByLatLon']);
 
 
     /* ------------------------------------------------------------------------------- */
@@ -445,6 +454,7 @@ Route::group(['middleware' => 'api'], function () {
     Route::get('/apple_booking_confirm_sendemail__applehotels/{id}', [BookingController::class, 'sendConfirmationEmail']);
     Route::post('/apple_booking_cancellation__applehotels/{id}', [BookingController::class, 'bookingCancellationRequest']);
     Route::post('/apple_booking_ammend__applehotels/{id}', [BookingController::class, 'ammendBooking']);
+    Route::post('/update_hotels_status_aahaas', [BookingController::class, 'validateHotelBooking']);
 
 
     /* ///////////////////////////////////////////////////////////////////////////////////////////// */
@@ -478,7 +488,7 @@ Route::group(['middleware' => 'api'], function () {
     Route::get('/get-all-life-styles/{category1}/{category2}/{category3}/{category4}/{latlon}/{radius}/{limit}', [LifeStylesController::class, 'get_lifestyles']);
 
     Route::post('/add-new-life-styles-booking', [LifeStyleBookingController::class, 'addNewLifeStyleBooking']);
-    
+
     Route::post('/uploadexcel', [ExcelController::class, 'uploadExcel']);
 
     /* ####################################### */
@@ -714,5 +724,6 @@ Route::group(['middleware' => 'api'], function () {
     Route::get('/get_currency/{value}', [Currencies::class, 'getCurrency']);
     Route::post('/convert_currency/{value}/{value1}', [Currencies::class, 'convertCurrency']);
     Route::post('/check_email', [SellerController::class, 'sendEmail']);
-    Route::post('/aahaas_hotel_push_meta', [CommonHotel_APIController::class, 'pushAahaasHotel']);
+    // Route::post('/aahaas_hotel_push_meta', [CommonHotel_APIController::class, 'pushAahaasHotel']);
+    Route::post('/hotel_meta_data_push', [HotelMeta::class, 'createHotelDetailsBeds']);
 });

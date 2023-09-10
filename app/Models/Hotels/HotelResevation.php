@@ -43,23 +43,23 @@ class HotelResevation extends Model
         'other_remarks',
         'booking_remarks',
         'status',
-        'created_at',
-        'updated_at',
         'user_id',
         'cartStatus',
-        'hotel_image'
+        'hotel_image',
+        'pre_id'
     ];
 
     public $timestamps = false;
 
     //create a booking
-    public function makeHotelReservation($bookingRef, $HolderFullName, $resevationDate, $hotelName, $checkinTime, $checkoutTime, $noOfAD, $noOfCH, $bedType, $roomType, $noOfRooms, $boardCode, $remarks, $resevationPlatform, $resevationStatus, $currency, $cancelation, $modification, $cancelation_amount, $cancelation_deadline, $created_at, $updated_at, $user_Id)
+    public function makeHotelReservation($rateKey, $bookingRef, $HolderFullName, $resevationDate, $hotelName, $checkinTime, $checkoutTime, $noOfAD, $noOfCH, $bedType, $roomType, $noOfRooms, $boardCode, $remarks, $resevationPlatform, $resevationStatus, $currency, $cancelation, $modification, $cancelation_amount, $cancelation_deadline, $user_Id, $preId)
     {
         try {
 
             set_time_limit(0);
-            
+
             $hotelRes = HotelResevation::create([
+                'rate_key' => $rateKey,
                 'resevation_no' => $bookingRef,
                 'resevation_name' => $HolderFullName,
                 'resevation_date' => $resevationDate,
@@ -83,9 +83,8 @@ class HotelResevation extends Model
                 'cancelation_deadline' => $cancelation_deadline,
                 'booking_remarks' => $remarks,
                 'status' => 'New',
-                'created_at' => $created_at,
-                'updated_at' => $updated_at,
-                'user_id' => $user_Id
+                'user_id' => $user_Id,
+                'pre_id' => $preId
             ]);
 
             return $hotelRes->id;

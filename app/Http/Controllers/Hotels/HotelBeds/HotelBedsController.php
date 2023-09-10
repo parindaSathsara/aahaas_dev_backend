@@ -660,8 +660,9 @@ class HotelBedsController extends Controller
             $Adults = $request['adults'];
             $Childs = $request['childs'];
             $Rooms = $request['rooms'];
+            $Age = $request['age'];
 
-            $response = $this->hotel_beds->fetchDestinationWiseHotels($CheckIn, $CheckOut, $Rooms, $Adults, $Childs, $Latitude, $Longitude);
+            $response = $this->hotel_beds->fetchDestinationWiseHotels($CheckIn, $CheckOut, $Rooms, $Adults, $Childs, $Latitude, $Longitude, $Age);
 
             return $response;
         } catch (\Throwable $th) {
@@ -681,11 +682,11 @@ class HotelBedsController extends Controller
     // *************** ############################################### *********************
 
     //Getting data based on currenct location
-    public function availabilityBasedOnCurrentLocation($CountryCode)
+    public function availabilityBasedOnCurrentLocation($latitude, $longitude)
     {
         try {
 
-            $response = $this->hotel_beds->fetchHotelsBedsBasedOnCurrentLocation($CountryCode);
+            $response = $this->hotel_beds->fetchHotelsBedsBasedOnCurrentLocation($latitude, $longitude);
 
             return $response;
         } catch (\Throwable $th) {

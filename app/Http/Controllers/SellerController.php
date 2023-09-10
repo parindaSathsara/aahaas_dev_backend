@@ -252,7 +252,7 @@ class SellerController extends Controller
             $last = DB::table('vendor_users')->orderBy('id', 'DESC')->first();
             $id = $last == null ? 1 : $last->id + 1;
             $time = Carbon::now();
-            $auto_id = 'SLR00' . $id . '/' . Str::random(5) . $time->milli;
+            $auto_id =  $id .  mt_rand(10, 99) . $time->milli;
 
             // return $auto_id;
 

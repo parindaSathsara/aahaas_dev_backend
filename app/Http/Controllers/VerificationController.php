@@ -28,6 +28,6 @@ class VerificationController extends Controller
             ]);
         }
 
-        return redirect()->to('http://localhost/user-login');
+        return redirect()->to('https://frontend.aahaas.com/user-login');
     }
 }

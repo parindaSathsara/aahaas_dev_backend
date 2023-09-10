@@ -129,11 +129,19 @@ class SearchController extends Controller
                 ->groupBy('edu_tbl_education.education_id')
                 ->get();
 
+            //Hotel
+            $hotelListings = DB::table('tbl_hotel')
+                ->leftJoin('tbl_hotel_details', 'tbl_hotel.id', '=', 'tbl_hotel_details.hotel_id')
+                ->select('*', 'tbl_hotel.id AS HotelIDHOTEL')
+                ->where('tbl_hotel.hotel_name', 'LIKE', '%' . $SearchText . '%')
+                ->orWhere('tbl_hotel.hotel_description', 'LIKE', '%' . $SearchText . '%')->get();
+
             return response()->json([
                 'status' => 200,
                 'essential_data' => $prodDataWithDiscounts,
                 'lifestyle_data' => $lifeStyles,
-                'education_data' => $educationListings
+                'education_data' => $educationListings,
+                'hotel_data' => $hotelListings
             ]);
         } catch (\Exception $ex) {
             return response()->json([

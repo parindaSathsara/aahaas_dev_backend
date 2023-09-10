@@ -547,9 +547,6 @@ class EducationListingsController extends Controller
                 ->groupBy('course_mode')
                 ->get();
 
-
-            
-
             $sessionMode = DB::table('edu_tbl_education')
                 ->join('edu_tbl_vendor', 'edu_tbl_education.vendor_id', '=', 'edu_tbl_vendor.id')
                 ->join('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')
@@ -562,13 +559,26 @@ class EducationListingsController extends Controller
                 ->groupBy('edu_tbl_education.sessions')
                 ->get();
 
+            $curriculumType = DB::table('edu_tbl_education')
+                ->join('edu_tbl_vendor', 'edu_tbl_education.vendor_id', '=', 'edu_tbl_vendor.id')
+                ->join('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')
+                ->join('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
+                ->join('edu_tbl_rate', 'edu_tbl_inventory.id', '=', 'edu_tbl_rate.edu_inventory_id')
+                ->select(
+                    'edu_tbl_details.curriculum',
+                )
+                ->orderBy('edu_tbl_details.curriculum', 'DESC')
+                ->where($whereArray)
+                ->groupBy('edu_tbl_details.curriculum')
+                ->get();
 
             return response()->json([
                 'status' => 200,
                 'educationListings' => $educationListings,
                 'groupType' => $groupType,
                 'courseMode' => $courseMode,
-                'sessionMode' => $sessionMode
+                'sessionMode' => $sessionMode,
+                'curriculumType' => $curriculumType
             ]);
         } catch (\Exception $exception) {
             return response()->json([
