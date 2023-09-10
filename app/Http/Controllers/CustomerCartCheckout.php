@@ -421,6 +421,8 @@ class CustomerCartCheckout extends Controller
                     'tbl_checkouts.currency AS Currency',
                 )->get();
 
+            
+
             $QueryEdu = DB::table('tbl_checkouts')->where('tbl_checkouts.checkout_id', '=', $OrderId)
                 ->join('tbl_checkout_ids', 'tbl_checkouts.checkout_id', '=', 'tbl_checkout_ids.id')
                 ->join('users', 'tbl_checkouts.cx_id', '=', 'users.id')
