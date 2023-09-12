@@ -138,7 +138,7 @@ class HotelMetaRates extends Model
         try {
 
             $query = DB::table('aahaas_rates_meta')
-                ->where(['aahaas_rates_meta.autoFetch' => true, 'aahaas_rates_meta.userId' => gethostbyname(gethostname()), 'groupId' => $id]) // 'aahaas_rates_meta.fetchDate' => Carbon::now()->format('Y-m-d'),
+                ->where(['aahaas_rates_meta.userId' => gethostbyname(gethostname()), 'groupId' => $id]) // 'aahaas_rates_meta.fetchDate' => Carbon::now()->format('Y-m-d'),
                 ->select('*')
                 ->limit(3)
                 ->orderBy('aahaas_rates_meta.net', 'ASC')
@@ -195,7 +195,8 @@ class HotelMetaRates extends Model
                 'adults' => $dataset['adults'],
                 'children' => $dataset['children'],
                 'childrenAges' => $dataset['childrenAges'],
-                'sortCriteria' => $dataset['sortCriteria'],
+                'sortCriteria' => null, //in_array('currency', $bdhotels['rooms']) ? $rates['currency'] : 'EUR'; //in_array('sortCriteria', $dataset) ? $dataset['sortCriteria'] :
+                'autoFetch' => true,
                 'fetchDate' => Carbon::now()->format('Y-m-d'),
             ]);
 

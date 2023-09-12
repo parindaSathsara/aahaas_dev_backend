@@ -160,7 +160,7 @@ class BookingController extends Controller
                     ->where('tbl_hotel.id', $id)
                     ->where('tbl_hotel_room_rate.travel_startdate', '<=', $CheckIn)
                     ->where('tbl_hotel_inventory.max_adult_occupancy', '<=', $AdultCount)
-                    ->whereIn('tbl_hotel_room_rate.meal_plan', $meals)
+                    ->orWhereIn('tbl_hotel_room_rate.meal_plan', $meals)
                     // ->where('tbl_hotel_room_rate.meal_plan', '=', $MealType)
                     // ->where('tbl_hotel_room_rate.service', '=', $serviceTypeList[0])
                     // ->where('tbl_hotel_room_rate.service_type', '=', $ServiceType)

@@ -84,7 +84,7 @@ class HotelBedsController extends Controller
 
             $childAges = $request['childAges'];
 
-            $ReqHotelCode = (int)$request['hotelCode'];
+            $ReqHotelCode = [(int)$request['hotelCode']];
 
             $response = $this->hotel_beds->checkAvailabilityHotelBeds($checkInDate, $checkOutDate, $noOfRooms, $noOfAdults, $noOfChilds, $childAges, $ReqHotelCode);
 

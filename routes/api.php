@@ -438,6 +438,7 @@ Route::group(['middleware' => 'api'], function () {
     Route::get('/get_hotel_meta_hotels', [HotelMetaController::class, 'index']);
     Route::post('/fetch_single_hotel_rates/{id}', [HotelMetaController::class, 'fetchRatesForEachHotel']);
     Route::post('/search_hotel_by_latlon', [HotelMetaController::class, 'getHotelsByLatLon']);
+    Route::post('/feed_rates_for_main_page', [HotelMetaController::class, 'rateDataFeed']);
 
 
     /* ------------------------------------------------------------------------------- */
@@ -462,8 +463,6 @@ Route::group(['middleware' => 'api'], function () {
     /* ///////////////////////////////////////////////////////////////////////////////////////////// */
     Route::post('/create-new-brand', [BrandsController::class, 'createNewBrand']);
     Route::get('/fetch-all-brands', [BrandsController::class, 'getAllBrands']);
-
-
 
 
     /* ///////////////////////////////////////////////////////////////////////////////////////////// */

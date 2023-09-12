@@ -114,11 +114,9 @@ class HotelBeds extends Model
                 ->post('https://api.test.hotelbeds.com/hotel-api/1.0/hotels', $sub_array)->json();
 
 
+            // return $response;
             if ($response['hotels']['total'] == 0) {
-                return response([
-                    'status' => 404,
-                    'data' => 'No Availability'
-                ]);
+                return $response;
             } else {
 
                 Log::build([
