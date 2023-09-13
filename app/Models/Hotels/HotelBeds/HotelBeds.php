@@ -83,10 +83,10 @@ class HotelBeds extends Model
             $MainArray['stay']['checkOut'] = $checkoutdate;
 
 
-            $MainArray['occupancies']['rooms'] = $noofrooms;
+            $MainArray['occupancies']['rooms'] = (int)$noofrooms;
             $NoOfPax = [];
-            $MainArray['occupancies']['adults'] = $noofadults;
-            $MainArray['occupancies']['children'] = $noofchild;
+            $MainArray['occupancies']['adults'] = (int)$noofadults;
+            $MainArray['occupancies']['children'] = (int)$noofchild;
 
             $AgeofChild = explode(',', $childages);
 

@@ -435,7 +435,7 @@ Route::group(['middleware' => 'api'], function () {
     /* -------------------------------Hotel META API Routes--------------------------- */
     /* ------------------------------------------------------------------------------- */
     /* ------------------------------------------------------------------------------- */
-    Route::get('/get_hotel_meta_hotels', [HotelMetaController::class, 'index']);
+    Route::get('/get_hotel_meta_hotels/{lat}/{lon}', [HotelMetaController::class, 'index']);
     Route::post('/fetch_single_hotel_rates/{id}', [HotelMetaController::class, 'fetchRatesForEachHotel']);
     Route::post('/search_hotel_by_latlon', [HotelMetaController::class, 'getHotelsByLatLon']);
     Route::post('/feed_rates_for_main_page', [HotelMetaController::class, 'rateDataFeed']);

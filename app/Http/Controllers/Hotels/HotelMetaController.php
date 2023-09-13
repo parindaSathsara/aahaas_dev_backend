@@ -33,13 +33,34 @@ class HotelMetaController extends Controller
         $this->hotel_rates = new HotelMetaRates();
     }
 
+    function getRadius($lat, $lon)
+    {
+        $har = "(6371 * acos(cos(radians(" . $lat . ")) 
+            * cos(radians(tbl_lifestyle_inventory.latitude)) 
+            * cos(radians(tbl_lifestyle_inventory.longitude) - radians(" . $lon . ")) 
+            + sin(radians(" . $lat . ")) 
+            * sin(radians(tbl_lifestyle_inventory.latitude))))";
+
+
+        return $har;
+    }
+
     //Fetch All Rates
-    public function index()
+    public function index($lat, $lon)
     {
         try {
+
+            $har = "(6371 * acos(cos(radians(" . $lat . ")) 
+            * cos(radians(aahaas_hotel_meta.latitude)) 
+            * cos(radians(aahaas_hotel_meta.longitude) - radians(" . $lon . ")) 
+            + sin(radians(" . $lat . ")) 
+            * sin(radians(aahaas_hotel_meta.latitude))))";
+
             $query = DB::table('aahaas_hotel_meta')
-                ->where(['aahaas_rates_meta.autoFetch' => true, 'aahaas_rates_meta.userId' => gethostbyname(gethostname())]) //'aahaas_rates_meta.fetchDate' => Carbon::now()->format('Y-m-d'),
+                ->whereRaw("{$har} < ?", [20])
+                // ->where(['aahaas_rates_meta.autoFetch' => true, 'aahaas_rates_meta.userId' => gethostbyname(gethostname())]) //'aahaas_rates_meta.fetchDate' => Carbon::now()->format('Y-m-d'),
                 ->join('aahaas_rates_meta', 'aahaas_hotel_meta.id', '=', 'aahaas_rates_meta.groupId')
+                ->selectRaw("{$har} AS distance")
                 ->select('*')
                 ->orderBy('aahaas_rates_meta.net', 'ASC')
                 ->groupBy('aahaas_rates_meta.groupId')
@@ -89,7 +110,7 @@ class HotelMetaController extends Controller
                 foreach ($row_data as $row) {
                     if ($row->provider === 'hotelBeds') {
                         $beds = $this->getAllHotelBedsRates($this->check_in, $this->check_out, [(int)$row->hotelCode], $ahsCount);
-                        // return $beds;
+                        return $beds;
                         if ($beds['hotels']['total'] == 0) {
                             $hoteNoCode[] = (int)$row->hotelCode;
                         } else {
@@ -113,7 +134,7 @@ class HotelMetaController extends Controller
                                         $dataset['boardCode'] = $rate['boardCode'];
                                         $dataset['boardName'] = $rate['boardName'];
                                         $dataset['cancellationAmount'] = $rate['cancellationPolicies'][0]['amount'];
-                                        $dataset['cancellationFrom'] = $rate['cancellationPolicies'][0]['amount'];
+                                        $dataset['cancellationFrom'] = $rate['cancellationPolicies'][0]['from'];
                                         $dataset['taxIncluded'] = null;
                                         $dataset['taxAmount'] = null;
                                         $dataset['taxCurrency'] = null;
@@ -134,6 +155,10 @@ class HotelMetaController extends Controller
                                         $dataset['children'] = $this->child_count;
                                         $dataset['childrenAges'] = $this->child_ages;
                                         $dataset['rowId'] = $row->id;
+                                        $dataset['hotelCode'] = $row->hotelCode;
+                                        $dataset['bookingStart'] = null;
+                                        $dataset['bookingEnd'] = null;
+                                        $dataset['bookingDeadline'] = null;
                                         $this->hotel_rates->updateHotelData($dataset);
                                     }
                                 }
@@ -144,10 +169,10 @@ class HotelMetaController extends Controller
                             $dataset_second['roomCode'] = $ahsRate->room_type;
                             $dataset_second['roomName'] = $ahsRate->room_category;
                             $dataset_second['roomCategory'] = $ahsRate->room_category;
-                            $dataset_second['rateKey'] = null;
+                            $dataset_second['rateKey'] = $ahsRate->RateID;
                             $dataset_second['rateClass'] = null;
                             $dataset_second['rateType'] = 'BOOKABLE';
-                            $dataset_second['net'] = ((float)$ahsRate->adult_rate * 2);
+                            $dataset_second['net'] = ((float)$ahsRate->adult_rate * $ahsRate->RT);
                             $dataset_second['adultRate'] = (float)$ahsRate->adult_rate;
                             $dataset_second['childWithBedRate'] = (float)$ahsRate->child_withbed_rate;
                             $dataset_second['childWithNoBedRate'] = (float)$ahsRate->child_withoutbed_rate;
@@ -156,7 +181,7 @@ class HotelMetaController extends Controller
                             $dataset_second['packaging'] = null;
                             $dataset_second['boardCode'] = $ahsRate->meal_plan;
                             $dataset_second['boardName'] = $ahsRate->meal_plan; //$ahsRate['meal_plan'] == 'BB' ? 'BED & BREAKFAST' : $ahsRate['meal_plan'] == 'FB' ? 'FULL BOARD' : $ahsRate['meal_plan'] == 'RO' ? 'ROOM ONLY' : $ahsRate['meal_plan'] == 'AI' ? 'ALL INCLUSIVE' : null;
-                            $dataset_second['cancellationAmount'] = ((float)$ahsRate->adult_rate * 2);
+                            $dataset_second['cancellationAmount'] = ((float)$ahsRate->adult_rate * $ahsRate->RT);
                             $dataset_second['cancellationFrom'] = $ahsRate->cancellation_days_before;
                             $dataset_second['taxIncluded'] = null;
                             $dataset_second['taxAmount'] = null;
@@ -168,7 +193,7 @@ class HotelMetaController extends Controller
                             $dataset_second['offerName'] = null;
                             $dataset_second['offerAmount'] = null;
                             $dataset_second['discountLimit'] =  $ahsRate->discount_limit;
-                            $dataset_second['minRate'] = ((float)$ahsRate->adult_rate * 2);
+                            $dataset_second['minRate'] = ((float)$ahsRate->adult_rate * $ahsRate->RT);
                             $dataset_second['maxRate'] = 0.00;
                             $dataset_second['currency'] = $ahsRate->currency;
                             $dataset_second['checkIn'] = $this->check_in;
@@ -178,6 +203,10 @@ class HotelMetaController extends Controller
                             $dataset_second['children'] = $this->child_count;
                             $dataset_second['childrenAges'] = $this->child_ages;
                             $dataset_second['rowId'] = $row->id;
+                            $dataset_second['hotelCode'] = $row->hotelCode;
+                            $dataset_second['bookingStart'] = $ahsRate->booking_startdate;
+                            $dataset_second['bookingEnd'] = $ahsRate->booking_enddate;
+                            $dataset_second['bookingDeadline'] = $ahsRate->book_by_days;
                             $this->hotel_rates->updateHotelData($dataset_second);
                         }
                     }
@@ -192,10 +221,10 @@ class HotelMetaController extends Controller
                     $dataset_second['roomCode'] = $ahsRate->room_type;
                     $dataset_second['roomName'] = $ahsRate->room_category;
                     $dataset_second['roomCategory'] = $ahsRate->room_category;
-                    $dataset_second['rateKey'] = null;
+                    $dataset_second['rateKey'] = $ahsRate->RateID;;
                     $dataset_second['rateClass'] = null;
                     $dataset_second['rateType'] = 'BOOKABLE';
-                    $dataset_second['net'] = ((float)$ahsRate->adult_rate * 2);
+                    $dataset_second['net'] = ((float)$ahsRate->adult_rate * $ahsRate->RT);
                     $dataset_second['adultRate'] = (float)$ahsRate->adult_rate;
                     $dataset_second['childWithBedRate'] = (float)$ahsRate->child_withbed_rate;
                     $dataset_second['childWithNoBedRate'] = (float)$ahsRate->child_withoutbed_rate;
@@ -204,7 +233,7 @@ class HotelMetaController extends Controller
                     $dataset_second['packaging'] = null;
                     $dataset_second['boardCode'] = $ahsRate->meal_plan;
                     $dataset_second['boardName'] = $ahsRate->meal_plan; //$ahsRate['meal_plan'] == 'BB' ? 'BED & BREAKFAST' : $ahsRate['meal_plan'] == 'FB' ? 'FULL BOARD' : $ahsRate['meal_plan'] == 'RO' ? 'ROOM ONLY' : $ahsRate['meal_plan'] == 'AI' ? 'ALL INCLUSIVE' : null;
-                    $dataset_second['cancellationAmount'] = ((float)$ahsRate->adult_rate * 2);
+                    $dataset_second['cancellationAmount'] = ((float)$ahsRate->adult_rate * $ahsRate->RT);
                     $dataset_second['cancellationFrom'] = $ahsRate->cancellation_days_before;
                     $dataset_second['taxIncluded'] = null;
                     $dataset_second['taxAmount'] = null;
@@ -216,7 +245,7 @@ class HotelMetaController extends Controller
                     $dataset_second['offerName'] = null;
                     $dataset_second['offerAmount'] = null;
                     $dataset_second['discountLimit'] =  $ahsRate->discount_limit;
-                    $dataset_second['minRate'] = ((float)$ahsRate->adult_rate * 2);
+                    $dataset_second['minRate'] = ((float)$ahsRate->adult_rate * $ahsRate->RT);
                     $dataset_second['maxRate'] = 0.00;
                     $dataset_second['currency'] = $ahsRate->currency;
                     $dataset_second['checkIn'] = $this->check_in;
@@ -231,6 +260,9 @@ class HotelMetaController extends Controller
                     $dataset_second['autoFetch'] = true;
                     $dataset_second['groupId'] = $groupId->id;
                     $dataset_second['provider'] = 'hotelAhs';
+                    $dataset_second['bookingStart'] = $ahsRate->booking_startdate;
+                    $dataset_second['bookingEnd'] = $ahsRate->booking_enddate;
+                    $dataset_second['bookingDeadline'] = $ahsRate->book_by_days;
                     $this->hotel_rates->createHotelRates($dataset_second);
                 }
 
@@ -258,7 +290,7 @@ class HotelMetaController extends Controller
                             $dataset['boardCode'] = $rate['boardCode'];
                             $dataset['boardName'] = $rate['boardName'];
                             $dataset['cancellationAmount'] = $rate['cancellationPolicies'][0]['amount'];
-                            $dataset['cancellationFrom'] = $rate['cancellationPolicies'][0]['amount'];
+                            $dataset['cancellationFrom'] = $rate['cancellationPolicies'][0]['from'];
                             $dataset['taxIncluded'] = null;
                             $dataset['taxAmount'] = null;
                             $dataset['taxCurrency'] = null;
@@ -284,6 +316,9 @@ class HotelMetaController extends Controller
                             $dataset['autoFetch'] = true;
                             $dataset['groupId'] = $groupId->id;
                             $dataset['provider'] = 'hotelBeds';
+                            $dataset['bookingStart'] = null;
+                            $dataset['bookingEnd'] = null;
+                            $dataset['bookingDeadline'] = null;
                             $this->hotel_rates->createHotelRates($dataset);
                         }
                     }
@@ -306,7 +341,16 @@ class HotelMetaController extends Controller
                 ->join('tbl_hotel_terms_conditions', 'aahaas_hotel_meta.ahs_HotelId', 'tbl_hotel_terms_conditions.hotel_id')
                 ->join('tbl_hotel_inventory', 'aahaas_hotel_meta.ahs_HotelId', '=', 'tbl_hotel_inventory.hotel_id')
                 ->join('tbl_hotel_discount', 'aahaas_hotel_meta.ahs_HotelId', '=', 'tbl_hotel_discount.hotel_id')
-                ->select('aahaas_hotel_meta.*', 'aahaas_hotel_meta.ahs_HotelId AS HotelIDHOTEL', 'tbl_hotel_room_rate.*', 'tbl_hotel_terms_conditions.*', 'tbl_hotel_inventory.*', 'tbl_hotel_discount.*')
+                ->select(
+                    'aahaas_hotel_meta.*',
+                    'aahaas_hotel_meta.ahs_HotelId AS HotelIDHOTEL',
+                    'tbl_hotel_room_rate.*',
+                    'tbl_hotel_terms_conditions.*',
+                    'tbl_hotel_inventory.*',
+                    'tbl_hotel_discount.*',
+                    'tbl_hotel_room_rate.room_type AS RT',
+                    'tbl_hotel_room_rate.id AS RateID'
+                )
                 ->orderBy('tbl_hotel_room_rate.adult_rate', 'ASC')
                 ->groupBy('tbl_hotel_room_rate.hotel_id')
                 ->get();

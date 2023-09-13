@@ -58,6 +58,16 @@ class ZoomMeetingController extends Controller
 
 
 
+
+
+
+
+
+
+
+
+
+
         $data = $validator->validated();
 
         $path = 'users/me/meetings';
@@ -160,7 +170,7 @@ class ZoomMeetingController extends Controller
     }
 
 
-    public function getMeetingByID($educationID,$meetingID)
+    public function getMeetingByID($educationID, $meetingID)
     {
         try {
             $educationListings = DB::table('edu_tbl_sessions')

@@ -66,6 +66,9 @@ class HotelMetaRates extends Model
         'fetchDate',
         'groupId',
         'provider',
+        'bookingStart',
+        'bookingEnd',
+        'bookingDeadline',
         'createdDate'
     ];
 
@@ -126,6 +129,9 @@ class HotelMetaRates extends Model
                 'fetchDate' => Carbon::now()->format('Y-m-d'),
                 'groupId' => $dataset['groupId'],
                 'provider' => $dataset['provider'],
+                'bookingStart',
+                'bookingEnd',
+                'bookingDeadline',
             ]);
         } catch (\Throwable $th) {
             throw $th;
@@ -137,12 +143,22 @@ class HotelMetaRates extends Model
     {
         try {
 
-            $query = DB::table('aahaas_rates_meta')
-                ->where(['aahaas_rates_meta.userId' => gethostbyname(gethostname()), 'groupId' => $id]) // 'aahaas_rates_meta.fetchDate' => Carbon::now()->format('Y-m-d'),
+            // return gethostbyname(gethostname());
+
+            $query = DB::table('aahaas_rates_meta')->where('groupId', $id)
+                // ->where(['aahaas_rates_meta.userId' => gethostbyname(gethostname()), 'groupId' => $id]) // 'aahaas_rates_meta.fetchDate' => Carbon::now()->format('Y-m-d'),
                 ->select('*')
                 ->limit(3)
                 ->orderBy('aahaas_rates_meta.net', 'ASC')
                 ->get();
+
+            $booking_deadline = array();
+
+            // foreach ($query as $qry) {
+            //     if ($qry->provider == 'hotelAhs') {
+            //         $data_qry = DB::table('tbl_hotel_room_rate')->where('tbl_hotel_room_rate.hotel_id')
+            //     }
+            // }
 
             return response([
                 'status' => 200,
@@ -198,6 +214,9 @@ class HotelMetaRates extends Model
                 'sortCriteria' => null, //in_array('currency', $bdhotels['rooms']) ? $rates['currency'] : 'EUR'; //in_array('sortCriteria', $dataset) ? $dataset['sortCriteria'] :
                 'autoFetch' => true,
                 'fetchDate' => Carbon::now()->format('Y-m-d'),
+                'bookingStart' => $dataset['bookingStart'],
+                'bookingEnd' => $dataset['bookingEnd'],
+                'bookingDeadline' => $dataset['bookingDeadline'],
             ]);
 
             return $query;

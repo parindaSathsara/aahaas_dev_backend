@@ -195,11 +195,15 @@ class BookingController extends Controller
                         'tbl_hotel_room_rate.child_withbed_age',
                         'tbl_hotel_room_rate.special_rate',
                         'tbl_hotel_room_rate.id AS rate_id',
+                        'tbl_hotel_room_rate.book_by_days',
+                        'tbl_hotel_room_rate.booking_enddate',
+                        'tbl_hotel_room_rate.booking_startdate',
+                        'tbl_hotel_room_rate.cancellation_days_before',
+                        'tbl_hotel_room_rate.cancellation_policy',
+                        'tbl_hotel_room_rate.travel_enddate',
+                        'tbl_hotel_room_rate.travel_startdate',
+                        'tbl_hotel.id AS HotelID'
                     )->orderBy('tbl_hotel_room_rate.special_rate', 'DESC')->get();
-
-
-
-
 
                 // return $otherServices;
 
@@ -212,9 +216,6 @@ class BookingController extends Controller
 
                 // return $otherServices;
 
-
-
-
                 foreach ($sql_query as $hotelData) {
                     $mealPlan = $hotelData->meal_plan;
                     if ($mealPlan == "HB") {
@@ -225,8 +226,6 @@ class BookingController extends Controller
                         $hotelArrayBB[] = $hotelData;
                     }
                 }
-
-
 
                 if (in_array("HB", $meals) && in_array("BB", $meals) && in_array("FB", $meals)) {
                     foreach ($hotelArrayHB as $hbData) {
@@ -261,8 +260,6 @@ class BookingController extends Controller
                 }
 
                 $hotelFinalDataSet = [];
-
-
 
                 // var totalAdultRate = hotelData['adult_rate'] * hotelsCustomerData.no_of_adults
 
@@ -381,6 +378,14 @@ class BookingController extends Controller
                         }
 
                         $hotelFinalDataSet[] = [
+                            'book_by_days' => $hotelFinal->book_by_days,
+                            'booking_enddate' => $hotelFinal->booking_enddate,
+                            'booking_startdate' => $hotelFinal->booking_startdate,
+                            'cancellation_days_before' => $hotelFinal->cancellation_days_before,
+                            'cancellation_policy' => $hotelFinal->cancellation_policy,
+                            'travel_enddate' => $hotelFinal->travel_enddate,
+                            'travel_startdate' => $hotelFinal->travel_startdate,
+                            'hotel_id' => $hotelFinal->HotelID,
                             'rate_id' => $hotelFinal->rate_id,
                             'currency' => $hotelFinal->currency,
                             'adult_rate' => $hotelFinal->adult_rate,
@@ -395,16 +400,14 @@ class BookingController extends Controller
                             'mealNames' => $hotelFinal->meal_plan,
                             'total_adult_rate' => ($hotelFinal->adult_rate * $AdultCount),
                             'per_adult_rate' => ($hotelFinal->adult_rate + $adultRateServices),
-
                             'meal_per_price' => implode(',', $mealPerPriceArray),
                             'service_per_price' => implode(',', $adultRateServicesArr),
-
                             'per_cwb' => $hotelFinal->child_withbed_rate + $cwb_rate,
                             'per_cnb' => $hotelFinal->child_withoutbed_rate + $cnb_rate,
-
                             'total_amount' => $totalAmount,
                             'otherServices' => $request->input('serviceTypeList'),
                             'otherServicesList' => $otherServicesDataSet,
+                            ''
                         ];
                     }
                 } else {
@@ -455,6 +458,14 @@ class BookingController extends Controller
 
 
                         $hotelFinalDataSet[] = [
+                            'book_by_days' => $hotelFinal->book_by_days,
+                            'booking_enddate' => $hotelFinal->booking_enddate,
+                            'booking_startdate' => $hotelFinal->booking_startdate,
+                            'cancellation_days_before' => $hotelFinal->cancellation_days_before,
+                            'cancellation_policy' => $hotelFinal->cancellation_policy,
+                            'travel_enddate' => $hotelFinal->travel_enddate,
+                            'travel_startdate' => $hotelFinal->travel_startdate,
+                            'hotel_id' => $hotelFinal->HotelID,
                             'rate_id' => implode(",", $rateKeyData),
                             'currency' => $dataSet[0]->currency,
                             'adult_rate' => array_sum($adultRate),
@@ -469,15 +480,10 @@ class BookingController extends Controller
                             'mealNames' => implode(",", $mealNames),
                             'total_adult_rate' => array_sum($adultRate) * $AdultCount,
                             'per_adult_rate' => $adultRate[0] + $adultRateServices,
-
                             'meal_per_price' => implode(',', $mealPerPriceArray),
                             'service_per_price' => implode(',', $adultRateServicesArr),
-
-
                             'per_cwb' => $dataSet[0]->child_withbed_rate + $cwb_rate,
                             'per_cnb' => $dataSet[0]->child_withoutbed_rate + $cnb_rate,
-
-
                             'total_amount' => $totalAmount,
                             'otherServices' => $request->input('serviceTypeList'),
                             'otherServicesList' => $otherServicesDataSet,
@@ -495,6 +501,10 @@ class BookingController extends Controller
                     }
                 }
 
+                // $current_timestamp = Carbon::now()->timestamp;
+                // $rateKey = $current_timestamp . $TodayDate;
+                // $x_sig = hash('sha256', $rateKey, true);
+                // $test_key = bin2hex($x_sig);
 
                 return response()->json([
                     'status' => 200,

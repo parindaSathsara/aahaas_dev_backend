@@ -77,7 +77,7 @@ class Hotel extends Model
     {
         try {
 
-            $QueryData = DB::table('tbl_hotel_inventory')->where('hotel_id', $id)->get();
+            $QueryData = DB::table('tbl_hotel_inventory')->where('hotel_id', $id)->select('*')->groupBy('room_category')->get();
 
             return $QueryData;
         } catch (\Throwable $th) {
