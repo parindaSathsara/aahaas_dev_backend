@@ -59,7 +59,56 @@ class ForgotController extends Controller
             ]);
         }
 
-        
+
+    }
+
+
+    public function forgotPasswordMobile(Request $request)
+    {
+
+        // return 'Response Coming';
+        $userEmail = $request->input('userEmail');
+
+        if (User::where('email', $userEmail)->doesntExist()) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'User not Exists, Please Check Again !'
+            ]);
+        }
+
+        // $token = Str::random(6);
+
+        $token = rand(333333,999999);
+
+
+
+        try {
+
+            DB::table('password_resets')->insert([
+                'email' => $userEmail,
+                'token' => $token
+            ]);
+
+            //Sending the password reset link to the user registered email
+            Mail::send('Mails.ForgotMobile', ['token' => $token], function ($message) use ($userEmail) {
+                $message->to($userEmail);
+                $message->subject('Reset your Password');
+            });
+
+            return response()->json([
+                'status' => 200,
+                'email' => $userEmail,
+                'message' => 'Password Reset Link Sent Successfully'
+            ]);
+        } catch (\Exception $exception) {
+
+            return response()->json([
+                'status' => 401,
+                'message' => throw $exception
+            ]);
+        }
+
+
     }
 
     /* Getting the User Email to send the Password Reset Link to reset the password function Ending */
