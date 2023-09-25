@@ -114,7 +114,7 @@ class SearchController extends Controller
             }
         }
 
-        return $responseKeys;
+        // return $responseKeys;
         return $this->searchProductsByImage($responseKeys);
     }
 
