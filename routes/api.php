@@ -154,6 +154,9 @@ Route::group(['middleware' => 'api'], function () {
 
     /* Forgot Controller Routes ----------  */
     Route::post('/forgot-password', [ForgotController::class, 'forgotPassword']);
+
+    Route::post('/forgot-password-mobile', [ForgotController::class, 'forgotPasswordMobile']);
+
     Route::post('/userreset', [ForgotController::class, 'resetPassword']);
 
     // Route::post('/forgot-view', [ForgotController::class, 'fogotview']);

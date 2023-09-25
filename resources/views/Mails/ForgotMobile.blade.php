@@ -18,11 +18,11 @@
         line-height: 2vh;
         color: #757575;
         letter-spacing: 1px;">If you’ve lost your password or wish to reset it,<br>
-            Use the link below to get started</p>
+            Use the code below to reset your password</p>
     </div>
 
     <div class="button__Container" style="text-align:center;">
-        <a href="https://frontend.aahaas.com/userreset/{{$token}}" class="reset__Btn" id="reset__Btn" style="border: none;
+        <p class="reset__Btn" id="reset__Btn" style="border: none;
         border-radius: 0;
         cursor: pointer;
         padding: 15px;
@@ -35,7 +35,7 @@
         border-radius: 5px;
         margin: 10px;
         font-family: Verdana;text-decoration: none;color:#fff;">
-            Reset Your Password</a>
+            {{$token}}</p>
     </div>
 
     <div class="bottom__Paragraph">

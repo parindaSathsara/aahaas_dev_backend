@@ -299,7 +299,7 @@ class ProductListingController extends Controller
                 'brand_id' => $request->input('brand_id'),
             ]);
 
-            // $newListingInventory = DB::select(DB::raw("INSERT INTO tbl_listing_inventory(variation_type1,variation_type2,variation_type3,variant_type1,variant_type2,variant_type3,quantity,unit_price,listing_id,created_at,updated_at) 
+            // $newListingInventory = DB::select(DB::raw("INSERT INTO tbl_listing_inventory(variation_type1,variation_type2,variation_type3,variant_type1,variant_type2,variant_type3,quantity,unit_price,listing_id,created_at,updated_at)
             //                         VALUES($variationType1,$variationType2,$variationType3,$variantType1,$variantType2,$variantType3,$qty,$unitprice,$listingId,$currentTime,$currentTime)"));
 
 
@@ -375,9 +375,7 @@ class ProductListingController extends Controller
     public function getProdListingWithDicounts($category1, $category2, $category3, $category4, $limit)
     {
 
-
         $whereArray = array();
-
 
         // if ($mainId != 0 && $subId != 0) {
         //     $whereArray = [['tbl_product_details.category1', '=', $id], ['tbl_product_details.category2', '=', $mainId], ['tbl_product_details.category3', '=', $subId]];
@@ -397,6 +395,7 @@ class ProductListingController extends Controller
         } else {
             $whereArray = [['tbl_product_details.category1', '=', $category1]];
         }
+        // test
 
 
 
@@ -490,7 +489,7 @@ class ProductListingController extends Controller
 
             // $rate = new \stdClass();
             // foreach($prodDataWithDiscounts as $key => $value)
-            // {   
+            // {
             //     $rate->$key = $value;
             // }
 
@@ -597,7 +596,7 @@ class ProductListingController extends Controller
 
             // $rate = new \stdClass();
             // foreach($prodDataWithDiscounts as $key => $value)
-            // {   
+            // {
             //     $rate->$key = $value;
             // }
 
