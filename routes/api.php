@@ -362,8 +362,10 @@ Route::group(['middleware' => 'api'], function () {
     /* ///////////////////////////////////////////////////////////////////////////////////////////// */
 
     Route::get('/essential-search-prod', [SearchController::class, 'mainSearchLanding']);
+    Route::post('/search_product_by_image', [SearchController::class, 'productSearchByImage']);
     Route::get('/essential-search-prod-bymanu', [SearchController::class, 'essentialSearchFilterByManufacture']);
     Route::post('/test-route', [TestController::class, 'confirmBooking']);
+
 
     /* ///////////////////////////////////////////////////////////////////////////////////////////// */
     /* ************************************** Singapoor Cities ***************************************** */
@@ -627,6 +629,8 @@ Route::group(['middleware' => 'api'], function () {
     // **** *********************************  Search Controller Routes  ************************ **** //
     // **** ///////////////////////////////////////////////////////////////////////////////////////////// **** //
     Route::get('/mainDataSearch/{search}', [CustomerSearchController::class, 'searchEssentialProducts']);
+    Route::post('/productSearchByImage', [CustomerSearchController::class, 'productSearchByImage']);
+
 
     Route::get('/getPromotionOffers/{type}/{mainCategory}/', [CustomerSearchController::class, 'getPromotionOffers']);
 
