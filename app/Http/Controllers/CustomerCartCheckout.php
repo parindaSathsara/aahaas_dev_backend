@@ -421,7 +421,7 @@ class CustomerCartCheckout extends Controller
                     'tbl_checkouts.currency AS Currency',
                 )->get();
 
-            
+
 
             $QueryEdu = DB::table('tbl_checkouts')->where('tbl_checkouts.checkout_id', '=', $OrderId)
                 ->join('tbl_checkout_ids', 'tbl_checkouts.checkout_id', '=', 'tbl_checkout_ids.id')
@@ -512,7 +512,7 @@ class CustomerCartCheckout extends Controller
                 'eduData' => $QueryEdu, 'hotelData' => $QueryHotel, 'orderDate' => $CheckoutDate, 'payType' => $PaymentType, 'total_amount' => $TotalAmount, 'paid_amount' => $PaidAmount, 'bal_amount' => $BalanceAmount, 'currency_' => $Currency, 'deli_charge' => $DeliCharge
             ];
 
-            // return $QueryEdu;
+            // return $dataset;
 
             // return view('Mails.CartCheckout', $dataset);
 

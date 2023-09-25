@@ -155,12 +155,11 @@ class LifeStylesController extends Controller
 
         if ($latlon != "\"\"") {
 
-         
+
             $lifeStyles = DB::table('tbl_lifestyle')
                 ->leftJoin('tbl_lifestyle_detail', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_detail.lifestyle_id')
                 ->join('tbl_lifestyle_inventory', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_inventory.lifestyle_id')
                 ->join('tbl_lifestyle_rates', 'tbl_lifestyle_inventory.lifestyle_inventory_id', '=', 'tbl_lifestyle_rates.lifestyle_inventory_id')
-
                 ->leftJoin('tbl_lifestyle_discount', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_discount.lifestyle_id')
                 ->select(
                     DB::raw("min(tbl_lifestyle_rates.adult_rate) AS adult_rate"),
@@ -193,13 +192,9 @@ class LifeStylesController extends Controller
                     'tbl_lifestyle_rates.currency',
                     // "{$har} as Distance"
                 )
-
                 ->groupBy('tbl_lifestyle.lifestyle_id')
                 ->orderBy('tbl_lifestyle_inventory.inventory_date')
-
-
                 ->where($whereArray)
-
                 ->selectRaw("{$har} AS distance")
                 ->whereRaw("{$har} < ?", [$rad])
                 ->limit($limit)
@@ -248,9 +243,7 @@ class LifeStylesController extends Controller
 
                 ->groupBy('tbl_lifestyle.lifestyle_id')
                 ->orderBy('tbl_lifestyle_inventory.inventory_date')
-
                 ->where($whereArray)
-
                 ->selectRaw("{$har} AS distance")
                 ->whereRaw("{$har} < ?", [$rad])
                 ->limit($limit)
@@ -274,7 +267,6 @@ class LifeStylesController extends Controller
             ->join('tbl_lifestyle_inventory', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_inventory.lifestyle_id')
             ->join('tbl_lifestyle_rates', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_rates.lifestyle_id')
             // ->join('tbl_lifestyle_rates', 'tbl_lifestyle_inventory.lifestyle_inventory_id', '=', 'tbl_lifestyle_rates.lifestyle_inventory_id')
-
             ->select(
                 'tbl_lifestyle.lifestyle_city',
                 'tbl_lifestyle.lifestyle_attraction_type',

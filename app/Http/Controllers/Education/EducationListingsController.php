@@ -512,7 +512,6 @@ class EducationListingsController extends Controller
                     'edu_tbl_rate.adult_course_fee',
                     'edu_tbl_rate.child_course_fee',
                     'edu_tbl_rate.deadline_no_ofdays',
-
                     'edu_tbl_rate.course_admission_deadline',
                     'edu_tbl_rate.sale_start',
                     'edu_tbl_termscond.cancel_deadline',

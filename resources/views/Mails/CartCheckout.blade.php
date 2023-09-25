@@ -83,10 +83,10 @@
                          <td style="padding:5px;border: 1px solid #cecece;text-align: center;border-collapse: collapse;">@if($educData->MainCat == 'Education'){{$educData->EduStartDate}}@endif</td>
                          <td style="padding:5px;border: 1px solid #cecece;text-align: center;border-collapse: collapse;">@if($educData->MainCat == 'Education'){{$educData->EduStartTime}}@endif</td>
                          <td style="padding:5px;border: 1px solid #cecece;text-align: center;border-collapse: collapse;">@if($educData->MainCat == 'Education'){{$educData->EduEndTime}}@endif</td>
-                         <td style="padding:5px;border: 1px solid #cecece;text-align: center;border-collapse: collapse;">@if($educData->MainCat == 'Education' && $educData->AdultStuFee != 0.00){{'Adult'}}@else{{ 'Child' }}@endif</td>
-                         <td style="padding:5px;border: 1px solid #cecece;text-align: center;border-collapse: collapse;">@if($educData->MainCat == 'Education' && $educData->AdultStuFee != 0.00){{$educData->Currency}} {{$educData->AdultStuFee}}@else{{'N/A'}}@endif</td>
-                         <td style="padding:5px;border: 1px solid #cecece;text-align: center;border-collapse: collapse;">@if($educData->MainCat == 'Education' && $educData->ChildStuFee != 0.00){{$educData->Currency}} {{$educData->ChildStuFee}}@else{{'N/A'}}@endif</td>
-                         <td style="padding:5px;border: 1px solid #cecece;text-align: center;border-collapse: collapse;">@if($educData->MainCat == 'Education'){{$educData->Currency}} {{$educData->TotPrice}}@endif</td>
+                         <td style="padding:5px;border: 1px solid #cecece;text-align: center;border-collapse: collapse;">@if($educData->MainCat == 'Education' && $educData->StudentType == 'Children'){{'Child'}}@else{{ 'Adult' }}@endif</td>
+                         <td style="padding:5px;border: 1px solid #cecece;text-align: center;border-collapse: collapse;">@if($educData->MainCat == 'Education' && $educData->StudentType == 'Adult'){{$educData->Currency}} {{$educData->AdultStuFee}}@else{{'N/A'}}@endif</td>
+                         <td style="padding:5px;border: 1px solid #cecece;text-align: center;border-collapse: collapse;">@if($educData->MainCat == 'Education' && $educData->StudentType == 'Children'){{$educData->Currency}} {{$educData->ChildStuFee}}@else{{'N/A'}}@endif</td>
+                         <td style="padding:5px;border: 1px solid #cecece;text-align: center;border-collapse: collapse;">@if($educData->MainCat == 'Education' && $educData->StudentType == 'Children'){{$educData->Currency}} {{$educData->ChildStuFee}}@else{{$educData->AdultStuFee}}@endif</td>
                      </tr>
                      @endforeach
 
