@@ -64,6 +64,15 @@ class SearchController extends Controller
                     "type": "OBJECT_LOCALIZATION"
                     },
 
+                    {
+                        "type": "PRODUCT_SEARCH"
+                    },
+                    {
+                        "type": "DOCUMENT_TEXT_DETECTION"
+                    },
+                    {
+                        "type":"LANDMARK_DETECTION"
+                    }
                 ]
                 }
             ]
@@ -250,6 +259,7 @@ class SearchController extends Controller
             return response()->json([
                 'status' => 200,
                 'essential_data' => $prodDataWithDiscounts,
+                'search' => $search
                 // 'lifestyle_data' => $lifeStyles,
                 // 'education_data' => $educationListings,
                 // 'hotel_data' => $hotelListings
