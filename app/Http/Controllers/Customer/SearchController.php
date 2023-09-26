@@ -42,7 +42,7 @@ class SearchController extends Controller
             $customerImage = 'https://api.aahaas.com/uploads/image_searches/' . $fileName;
         }
 
-        return $customerImage;
+        // return $customerImage;
 
         $url = "https://api.aahaas.com/uploads/image_searches/20211007_tm_chilli_pepper_heatwave_improved_mixed.jpg";
         $passData = ' {
@@ -78,7 +78,6 @@ class SearchController extends Controller
         }';
 
         $jsonData = json_decode($passData, true);
-
 
 
         $response = Http::withHeaders($this->getHeader())->post('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyAVZV3D2aAC4a9w8BqLvBx0DxSMwLZkKjI', $jsonData)->json();
@@ -200,7 +199,7 @@ class SearchController extends Controller
                 ->groupBy('tbl_product_listing.id')
                 ->where(function ($query) use ($SearchArray) {
                     foreach ($SearchArray as $wordVal) {
-                        $query->orWhere('tbl_product_listing.listing_title', 'LIKE', '%' . $wordVal . '%');
+                        $query->where('tbl_product_listing.listing_title', 'LIKE', '%' . $wordVal . '%');
                     }
                 })
 
