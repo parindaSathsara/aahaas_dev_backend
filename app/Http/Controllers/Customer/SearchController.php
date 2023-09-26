@@ -45,6 +45,7 @@ class SearchController extends Controller
         // return $customerImage;
 
         $url = "https://api.aahaas.com/uploads/image_searches/20211007_tm_chilli_pepper_heatwave_improved_mixed.jpg";
+
         $passData = ' {
             "parent": "",
             "requests": [
