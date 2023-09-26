@@ -42,7 +42,7 @@ class SearchController extends Controller
             // $file->move('uploads/image_searches/', $fileName);
             // $customerImage = 'https://api.aahaas.com/uploads/image_searches/' . $fileName;
 
-            $customerImage = base64_encode(file_get_contents($request->file('userImage')));
+            $customerImage = "data:image/png;base64," . base64_encode(file_get_contents($request->file('image')));
         }
 
 
