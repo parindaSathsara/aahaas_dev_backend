@@ -31,16 +31,21 @@ class SearchController extends Controller
 
     public function productSearchByImage2(Request $request)
     {
-        $customerImage = "";
+
 
 
         if ($request->hasFile('userImage')) {
-            $file = $request->file('userImage');
-            $fileExtension = $file->getClientOriginalExtension();
-            $fileName =  $file->getClientOriginalName();
-            $file->move('uploads/image_searches/', $fileName);
-            $customerImage = 'https://api.aahaas.com/uploads/image_searches/' . $fileName;
+
+            // $file = $request->file('userImage');
+            // $fileExtension = $file->getClientOriginalExtension();
+            // $fileName =  $file->getClientOriginalName();
+            // $file->move('uploads/image_searches/', $fileName);
+            // $customerImage = 'https://api.aahaas.com/uploads/image_searches/' . $fileName;
+
+            $customerImage = base64_encode(file_get_contents($request->file('userImage')));
         }
+
+
 
         // return $customerImage;
 
@@ -50,10 +55,8 @@ class SearchController extends Controller
             "parent": "",
             "requests": [
                 {
-                "image": {
-                    "source": {
-                    "imageUri": "' . $customerImage . '"
-                    }
+                "image":{
+                    "content":"' . $customerImage . '"
                 },
                 "features": [
                     {
