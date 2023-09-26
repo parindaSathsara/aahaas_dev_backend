@@ -42,7 +42,9 @@ class SearchController extends Controller
             $customerImage = 'https://api.aahaas.com/uploads/image_searches/' . $fileName;
         }
 
-        $url = "https://supersavings.lk/wp-content/uploads/2021/09/anchor-newdale-vanilla-flavoured-milk.png";
+        return $customerImage;
+
+        $url = "https://api.aahaas.com/uploads/image_searches/20211007_tm_chilli_pepper_heatwave_improved_mixed.jpg";
         $passData = ' {
             "parent": "",
             "requests": [
