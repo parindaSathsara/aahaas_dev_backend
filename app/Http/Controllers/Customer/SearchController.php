@@ -81,7 +81,7 @@ class SearchController extends Controller
 
 
         $response = Http::withHeaders($this->getHeader())->post('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyAVZV3D2aAC4a9w8BqLvBx0DxSMwLZkKjI', $jsonData)->json();
-
+        return $response;
         $responseKeys = [];
         foreach ($response['responses'] as $key) {
             // return   array_key_exists('labelAnnotations', $key);
@@ -199,7 +199,7 @@ class SearchController extends Controller
                 ->groupBy('tbl_product_listing.id')
                 ->where(function ($query) use ($SearchArray) {
                     foreach ($SearchArray as $wordVal) {
-                        $query->where('tbl_product_listing.listing_title', 'LIKE', '%' . $wordVal . '%');
+                        $query->orWhere('tbl_product_listing.listing_title', 'LIKE', '%' . $wordVal . '%');
                     }
                 })
 
