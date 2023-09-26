@@ -29,7 +29,7 @@ class SearchController extends Controller
     }
 
 
-    public function productSearchByImage(Request $request)
+    public function productSearchByImage2(Request $request)
     {
         $customerImage = "";
 
@@ -117,7 +117,7 @@ class SearchController extends Controller
         }
 
         // return $responseKeys;
-        return $this->searchProductsByImage($responseKeys);
+        // return $this->searchProductsByImage($responseKeys);
     }
 
 
@@ -163,12 +163,98 @@ class SearchController extends Controller
 
 
 
-    public function searchProductsByImage($search)
+    public function productSearchByImage(Request $request)
     {
+
+        $customerImage = "";
+
+        if ($request->hasFile('userImage')) {
+            $file = $request->file('userImage');
+            $fileExtension = $file->getClientOriginalExtension();
+            $fileName =  $file->getClientOriginalName();
+            $file->move('uploads/image_searches/', $fileName);
+            $customerImage = 'https://api.aahaas.com/uploads/image_searches/' . $fileName;
+        }
+
+        // return $customerImage;
+
+        $url = "https://api.aahaas.com/uploads/image_searches/20211007_tm_chilli_pepper_heatwave_improved_mixed.jpg";
+
+        $passData = ' {
+            "parent": "",
+            "requests": [
+                {
+                "image": {
+                    "source": {
+                    "imageUri": "' . $customerImage . '"
+                    }
+                },
+                "features": [
+                    {
+                    "type": "LABEL_DETECTION"
+                    
+                    },
+                    {
+                    "type": "OBJECT_LOCALIZATION"
+                    },
+
+                    {
+                        "type": "PRODUCT_SEARCH"
+                    },
+                    {
+                        "type": "DOCUMENT_TEXT_DETECTION"
+                    },
+                    {
+                        "type":"LANDMARK_DETECTION"
+                    }
+                ]
+                }
+            ]
+        }';
+
+        $jsonData = json_decode($passData, true);
+
+
+        $response = Http::withHeaders($this->getHeader())->post('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyAVZV3D2aAC4a9w8BqLvBx0DxSMwLZkKjI', $jsonData)->json();
+
+        $responseKeys = [];
+        foreach ($response['responses'] as $key) {
+            // return   array_key_exists('labelAnnotations', $key);
+
+
+            if (array_key_exists('labelAnnotations', $key)) {
+                foreach ($key['labelAnnotations'] as $lableAnnotions) {
+
+
+                    $responseKeys[] = $lableAnnotions['description'];
+                }
+            }
+            if (array_key_exists('localizedObjectAnnotations', $key)) {
+                // return $key["localizedObjectAnnotations"];
+                foreach ($key['localizedObjectAnnotations'] as $localizedObjectAnnotations) {
+                    $responseKeys[] = $localizedObjectAnnotations['name'];
+                }
+            }
+
+            if (array_key_exists('textAnnotations', $key)) {
+
+                foreach ($key['textAnnotations'] as $textAnnotations) {
+                    $responseKeys[] = $textAnnotations['description'];
+                }
+            }
+
+            if (array_key_exists('localizedObjectAnnotations', $key)) {
+                foreach ($key['localizedObjectAnnotations'] as $localizedObjectAnnotations) {
+                    $responseKeys[] = $localizedObjectAnnotations['name'];
+                }
+            }
+        }
+
+        // return $responseKeys;
 
         try {
             $word = "";
-            $SearchArray = $search;
+            $SearchArray = $responseKeys;
             //Essentials
             $prodDataWithDiscounts = DB::table('tbl_product_listing')
                 ->join('tbl_listing_inventory', 'tbl_product_listing.id', '=', 'tbl_listing_inventory.listing_id')
@@ -259,7 +345,7 @@ class SearchController extends Controller
             return response()->json([
                 'status' => 200,
                 'essential_data' => $prodDataWithDiscounts,
-                'search' => $search
+                'search' => $responseKeys
                 // 'lifestyle_data' => $lifeStyles,
                 // 'education_data' => $educationListings,
                 // 'hotel_data' => $hotelListings
