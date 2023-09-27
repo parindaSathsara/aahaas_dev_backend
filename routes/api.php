@@ -629,7 +629,7 @@ Route::group(['middleware' => 'api'], function () {
     // **** *********************************  Search Controller Routes  ************************ **** //
     // **** ///////////////////////////////////////////////////////////////////////////////////////////// **** //
     Route::get('/mainDataSearch/{search}', [CustomerSearchController::class, 'searchEssentialProducts']);
-    Route::post('/productSearchByImage', [CustomerSearchController::class, 'productSearchByImage']);
+    Route::post('/productSearchBy/{type}', [CustomerSearchController::class, 'productSearchByImage']);
 
 
     Route::get('/getPromotionOffers/{type}/{mainCategory}/', [CustomerSearchController::class, 'getPromotionOffers']);

@@ -166,31 +166,36 @@ class SearchController extends Controller
 
 
 
-    public function productSearchByImage(Request $request)
+    public function productSearchByImage($type, Request $request)
     {
 
-        $customerImage = "";
 
-        if ($request->hasFile('userImage')) {
-            $file = $request->file('userImage');
-            $fileExtension = $file->getClientOriginalExtension();
-            $fileName =  $file->getClientOriginalName();
-            $file->move('uploads/image_searches/', $fileName);
-            $customerImage = 'https://api.aahaas.com/uploads/image_searches/' . $fileName;
-        }
+        if ($type == "image") {
 
-        // return $customerImage;
+            if ($request->hasFile('userImage')) {
+                // $file = $request->file('userImage');
+                // $fileExtension = $file->getClientOriginalExtension();
+                // $fileName =  $file->getClientOriginalName();
+                // $file->move('uploads/image_searches/', $fileName);
+                // $customerImage = 'https://api.aahaas.com/uploads/image_searches/' . $fileName;
+                $customerImage = base64_encode(file_get_contents($request->file('userImage')));
+            }
+            // $file = base64_decode($request['profile_pic']);
 
-        $url = "https://api.aahaas.com/uploads/image_searches/20211007_tm_chilli_pepper_heatwave_improved_mixed.jpg";
 
-        $passData = ' {
+            // $customerImage = "";
+
+
+            // return $customerImage;
+
+            $url = "https://api.aahaas.com/uploads/image_searches/20211007_tm_chilli_pepper_heatwave_improved_mixed.jpg";
+
+            $passData = ' {
             "parent": "",
             "requests": [
                 {
-                "image": {
-                    "source": {
-                    "imageUri": "' . $customerImage . '"
-                    }
+               "image":{
+                     "content":"' . $customerImage . '"
                 },
                 "features": [
                     {
@@ -215,47 +220,57 @@ class SearchController extends Controller
             ]
         }';
 
-        $jsonData = json_decode($passData, true);
+            $jsonData = json_decode($passData, true);
 
 
-        $response = Http::withHeaders($this->getHeader())->post('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyAVZV3D2aAC4a9w8BqLvBx0DxSMwLZkKjI', $jsonData)->json();
-
-        $responseKeys = [];
-        foreach ($response['responses'] as $key) {
-            // return   array_key_exists('labelAnnotations', $key);
-
-
-            if (array_key_exists('labelAnnotations', $key)) {
-                foreach ($key['labelAnnotations'] as $lableAnnotions) {
+            $response = Http::withHeaders($this->getHeader())->post('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyAVZV3D2aAC4a9w8BqLvBx0DxSMwLZkKjI', $jsonData)->json();
+            // return $response;
+            $responseKeys = [];
+            foreach ($response['responses'] as $key) {
+                // return   array_key_exists('labelAnnotations', $key);
 
 
-                    $responseKeys[] = $lableAnnotions['description'];
+                if (array_key_exists('labelAnnotations', $key)) {
+                    foreach ($key['labelAnnotations'] as $lableAnnotions) {
+
+
+                        $responseKeys[] = $lableAnnotions['description'];
+                    }
+                }
+                if (array_key_exists('localizedObjectAnnotations', $key)) {
+                    // return $key["localizedObjectAnnotations"];
+                    foreach ($key['localizedObjectAnnotations'] as $localizedObjectAnnotations) {
+                        $responseKeys[] = $localizedObjectAnnotations['name'];
+                    }
+                }
+
+                if (array_key_exists('textAnnotations', $key)) {
+
+                    foreach ($key['textAnnotations'] as $textAnnotations) {
+                        $responseKeys[] = $textAnnotations['description'];
+                    }
+                }
+
+                if (array_key_exists('localizedObjectAnnotations', $key)) {
+                    foreach ($key['localizedObjectAnnotations'] as $localizedObjectAnnotations) {
+                        $responseKeys[] = $localizedObjectAnnotations['name'];
+                    }
+                }
+                if (array_key_exists('landmarkAnnotations', $key)) {
+                    foreach ($key['landmarkAnnotations'] as $landmarkAnnotations) {
+                        $responseKeys[] = $landmarkAnnotations['description'];
+                    }
                 }
             }
-            if (array_key_exists('localizedObjectAnnotations', $key)) {
-                // return $key["localizedObjectAnnotations"];
-                foreach ($key['localizedObjectAnnotations'] as $localizedObjectAnnotations) {
-                    $responseKeys[] = $localizedObjectAnnotations['name'];
-                }
-            }
 
-            if (array_key_exists('textAnnotations', $key)) {
+            // return $responseKeys;
 
-                foreach ($key['textAnnotations'] as $textAnnotations) {
-                    $responseKeys[] = $textAnnotations['description'];
-                }
-            }
-
-            if (array_key_exists('localizedObjectAnnotations', $key)) {
-                foreach ($key['localizedObjectAnnotations'] as $localizedObjectAnnotations) {
-                    $responseKeys[] = $localizedObjectAnnotations['name'];
-                }
-            }
+        } else {
+            $responseKeys = explode(',', $request->input('searchArray'));
         }
 
-        // return $responseKeys;
-
         try {
+
             $word = "";
             $SearchArray = $responseKeys;
             //Essentials
@@ -293,50 +308,88 @@ class SearchController extends Controller
                     }
                 })
 
+
+
                 // ->where('tbl_product_details.search_tags', 'LIKE', '%' . $SearchArray . '%')
                 // ->orWhere('tbl_product_listing.listing_title', 'LIKE', '%' . $SearchArray . '%')
                 ->get();
 
 
             // //LifeStyles
-            // $lifeStyles = DB::table('tbl_lifestyle')
-            //     ->join('tbl_lifestyle_detail', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_detail.lifestyle_id')
-            //     ->leftJoin('tbl_lifestyle_rates', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_rates.lifestyle_id')
-            //     ->select(
-            //         DB::raw("min(tbl_lifestyle_rates.adult_rate) AS adult_rate"),
-            //         DB::raw("min(tbl_lifestyle_rates.child_rate) AS child_rate"),
-            //         'tbl_lifestyle.lifestyle_city',
-            //         'tbl_lifestyle.lifestyle_attraction_type',
-            //         'tbl_lifestyle.lifestyle_name',
-            //         'tbl_lifestyle.lifestyle_description',
-            //         'tbl_lifestyle.image',
-            //         'tbl_lifestyle.lifestyle_id',
-            //         'tbl_lifestyle_rates.currency'
-            //     )
-            //     ->groupBy('tbl_lifestyle.lifestyle_id')
-            //     ->where('tbl_lifestyle.lifestyle_attraction_type', 'LIKE', '%' . $SearchArray . '%')
-            //     ->orWhere('tbl_lifestyle.lifestyle_name', 'LIKE', '%' . $SearchArray . '%')
-            //     ->get();
+            $lifeStyles = DB::table('tbl_lifestyle')
+                ->leftJoin('tbl_lifestyle_detail', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_detail.lifestyle_id')
+                ->join('tbl_lifestyle_inventory', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_inventory.lifestyle_id')
+                ->join('tbl_lifestyle_rates', 'tbl_lifestyle_inventory.lifestyle_inventory_id', '=', 'tbl_lifestyle_rates.lifestyle_inventory_id')
+
+                ->leftJoin('tbl_lifestyle_discount', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_discount.lifestyle_id')
+                ->select(
+                    DB::raw("min(tbl_lifestyle_rates.adult_rate) AS adult_rate"),
+                    DB::raw("min(tbl_lifestyle_rates.child_rate) AS child_rate"),
+                    DB::raw("max(tbl_lifestyle_inventory.inventory_date) AS inventory_date"),
+                    'tbl_lifestyle.lifestyle_city',
+                    'tbl_lifestyle.lifestyle_attraction_type',
+                    'tbl_lifestyle.lifestyle_name',
+                    'tbl_lifestyle.lifestyle_description',
+                    'tbl_lifestyle.image',
+                    'tbl_lifestyle.lifestyle_id',
+                    'tbl_lifestyle_inventory.pickup_location',
+                    // 'tbl_lifestyle_inventory.inventory_date',
+                    'tbl_lifestyle_inventory.pickup_time',
+                    'tbl_lifestyle_rates.currency',
+                    'tbl_lifestyle_discount.lifestyle_inventory_id',
+                    'tbl_lifestyle_discount.discount_limit',
+                    'tbl_lifestyle_discount.discount_type',
+                    'tbl_lifestyle_discount.offered_product',
+                    'tbl_lifestyle_discount.direct',
+                    'tbl_lifestyle_discount.value',
+                    'tbl_lifestyle_discount.inventory_limit',
+                    'tbl_lifestyle_discount.sale_start_date',
+                    'tbl_lifestyle_discount.sale_end_date',
+                    'tbl_lifestyle_rates.cancellation_days',
+                    'tbl_lifestyle_rates.book_by_days',
+                    'tbl_lifestyle_rates.booking_start_date',
+                    'tbl_lifestyle_rates.payment_policy',
+                    'tbl_lifestyle_rates.cancel_policy',
+                    'tbl_lifestyle_rates.currency',
+                    // "{$har} as Distance"
+                )
+
+                ->groupBy('tbl_lifestyle.lifestyle_id')
+                ->orderBy('tbl_lifestyle_inventory.inventory_date')
+
+                ->where(function ($query) use ($SearchArray) {
+                    foreach ($SearchArray as $wordVal) {
+                        $query->orWhere('tbl_lifestyle.lifestyle_name', 'LIKE', '%' . $wordVal . '%');
+                    }
+                })
+                // ->where('tbl_lifestyle.lifestyle_attraction_type', 'LIKE', '%' . $SearchArray . '%')
+                // ->orWhere('tbl_lifestyle.lifestyle_name', 'LIKE', '%' . $SearchArray . '%')
+                ->get();
 
             // //Education
-            // $educationListings = DB::table('edu_tbl_education')
-            //     ->leftJoin('edu_tbl_vendor', 'edu_tbl_education.vendor_id', '=', 'edu_tbl_vendor.id')
-            //     ->leftJoin('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')
-            //     ->leftJoin('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
-            //     ->leftJoin('edu_tbl_rate', 'edu_tbl_education.education_id', '=', 'edu_tbl_rate.edu_id')
-            //     ->select(
-            //         'edu_tbl_education.*',
-            //         'edu_tbl_vendor.*',
-            //         'edu_tbl_details.*',
-            //         'edu_tbl_inventory.*',
-            //         'edu_tbl_rate.adult_course_fee',
-            //         'edu_tbl_rate.child_course_fee',
-            //         'edu_tbl_rate.currency',
-            //     )
-            //     ->where('edu_tbl_education.course_name', 'LIKE', '%' . $SearchArray . '%')
-            //     ->orWhere('edu_tbl_education.course_description', 'LIKE', '%' . $SearchArray . '%')
-            //     ->groupBy('edu_tbl_education.education_id')
-            //     ->get();
+            $educationListings = DB::table('edu_tbl_education')
+                ->leftJoin('edu_tbl_vendor', 'edu_tbl_education.vendor_id', '=', 'edu_tbl_vendor.id')
+                ->leftJoin('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')
+                ->leftJoin('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
+                ->leftJoin('edu_tbl_rate', 'edu_tbl_education.education_id', '=', 'edu_tbl_rate.edu_id')
+                ->select(
+                    'edu_tbl_education.*',
+                    'edu_tbl_vendor.*',
+                    'edu_tbl_details.*',
+                    'edu_tbl_inventory.*',
+                    'edu_tbl_rate.adult_course_fee',
+                    'edu_tbl_rate.child_course_fee',
+                    'edu_tbl_rate.currency',
+                )
+                ->where(function ($query) use ($SearchArray) {
+                    foreach ($SearchArray as $wordVal) {
+                        $query->orWhere('edu_tbl_education.course_name', 'LIKE', '%' . $wordVal . '%');
+                    }
+                })
+                // ->where('edu_tbl_education.course_name', 'LIKE', '%' . $SearchArray . '%')
+                // ->orWhere('edu_tbl_education.course_description', 'LIKE', '%' . $SearchArray . '%')
+                ->groupBy('edu_tbl_education.education_id')
+                ->get();
 
             // //Hotel
             // $hotelListings = DB::table('tbl_hotel')
@@ -348,9 +401,9 @@ class SearchController extends Controller
             return response()->json([
                 'status' => 200,
                 'essential_data' => $prodDataWithDiscounts,
-                'search' => $responseKeys
-                // 'lifestyle_data' => $lifeStyles,
-                // 'education_data' => $educationListings,
+                'search' => $responseKeys,
+                'lifestyle_data' => $lifeStyles,
+                'education_data' => $educationListings,
                 // 'hotel_data' => $hotelListings
             ]);
         } catch (\Exception $ex) {
