@@ -17,6 +17,8 @@ class DriverRegController extends Controller
         $this->driver = new DriverReg();
     }
 
+
+
     //get all drivers
     public function getDriversAll()
     {

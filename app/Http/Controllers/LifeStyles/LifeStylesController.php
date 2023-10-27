@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Auth;
 
 
 class LifeStylesController extends Controller
@@ -350,6 +351,74 @@ class LifeStylesController extends Controller
             'lifeStyleDiscount' => $lifeStyleDiscounts,
             'lifeStyleTnC' => $lifeStyleTnC,
             'inventoryDates' => $invDates
+        ]);
+    }
+
+    public function getLifestyleOrders($id)
+    {
+        // return 'test';
+        $order = DB::table('tbl_checkout_ids')->where('tbl_checkout_ids.user_id', '=', $id)
+            ->leftJoin('tbl_checkouts', 'tbl_checkout_ids.id', '=', 'tbl_checkouts.checkout_id')->whereNotNull('tbl_checkouts.lifestyle_id')
+            ->leftJoin('tbl_lifestyle', 'tbl_checkouts.lifestyle_id', '=', 'tbl_lifestyle.lifestyle_id')
+            ->leftJoin('tbl_lifestyle_detail', 'tbl_checkouts.lifestyle_id', '=', 'tbl_lifestyle_detail.lifestyle_id')
+            ->leftJoin('tbl_lifestyle_discount', 'tbl_checkouts.lifestyle_id', '=', 'tbl_lifestyle_discount.lifestyle_id')
+            ->leftJoin('tbl_lifestyle_inventory', 'tbl_checkouts.lifestyle_id', '=', 'tbl_lifestyle_inventory.lifestyle_id')
+            ->leftJoin('tbl_lifestyle_rates', 'tbl_checkouts.lifestyle_id', '=', 'tbl_lifestyle_rates.lifestyle_id')
+            ->leftJoin('tbl_lifestyle_terms_and_conditions', 'tbl_checkouts.lifestyle_id', '=', 'tbl_lifestyle_terms_and_conditions.lifestyle_id')
+            ->where('tbl_lifestyle.vendor_id', $id)
+            ->select(
+                'tbl_checkouts.lifestyle_id AS MainLifestyleID',
+                'tbl_checkout_ids.*',
+                'tbl_checkouts.*',
+                'tbl_lifestyle.*',
+                'tbl_lifestyle_detail.*',
+                'tbl_lifestyle_discount.*',
+                'tbl_lifestyle_inventory.*',
+                'tbl_lifestyle_inventory.longitude AS InventoryLong',
+                'tbl_lifestyle_inventory.latitude AS InventoryLat',
+                'tbl_lifestyle_rates.*',
+                'tbl_lifestyle_rates.currency AS RateCurrency',
+                'tbl_lifestyle_terms_and_conditions.*',
+            )
+            ->groupBy('tbl_checkouts.id')
+            ->get();
+
+        return response()->json([
+            'status' => 200,
+            'order' => $order
+        ]);
+    }
+
+    public function getLifestyleOrdersByCheckoutId($checkout_id)
+    {
+        $checkout_orders = DB::table('tbl_checkout_ids')->where('tbl_checkout_ids.id', '=', $checkout_id)
+            ->where('tbl_checkout_ids.user_id', '=', auth()->user()->id)
+            ->leftJoin('tbl_checkouts', 'tbl_checkout_ids.id', '=', 'tbl_checkouts.checkout_id')->whereNotNull('tbl_checkouts.lifestyle_id')
+            ->leftJoin('tbl_lifestyle', 'tbl_checkouts.lifestyle_id', '=', 'tbl_lifestyle.lifestyle_id')
+            ->leftJoin('tbl_lifestyle_detail', 'tbl_checkouts.lifestyle_id', '=', 'tbl_lifestyle_detail.lifestyle_id')
+            ->leftJoin('tbl_lifestyle_discount', 'tbl_checkouts.lifestyle_id', '=', 'tbl_lifestyle_discount.lifestyle_id')
+            ->leftJoin('tbl_lifestyle_inventory', 'tbl_checkouts.lifestyle_id', '=', 'tbl_lifestyle_inventory.lifestyle_id')
+            ->leftJoin('tbl_lifestyle_rates', 'tbl_checkouts.lifestyle_id', '=', 'tbl_lifestyle_rates.lifestyle_id')
+            ->leftJoin('tbl_lifestyle_terms_and_conditions', 'tbl_checkouts.lifestyle_id', '=', 'tbl_lifestyle_terms_and_conditions.lifestyle_id')
+            ->select(
+                'tbl_checkouts.lifestyle_id AS MainLifestyleID',
+                'tbl_checkout_ids.*',
+                'tbl_checkouts.*',
+                'tbl_lifestyle.*',
+                'tbl_lifestyle_detail.*',
+                'tbl_lifestyle_discount.*',
+                'tbl_lifestyle_inventory.*',
+                'tbl_lifestyle_inventory.longitude AS InventoryLong',
+                'tbl_lifestyle_inventory.latitude AS InventoryLat',
+                'tbl_lifestyle_rates.*',
+                'tbl_lifestyle_rates.currency AS RateCurrency',
+                'tbl_lifestyle_terms_and_conditions.*',
+            )
+            ->get();
+
+        return response()->json([
+            'status' => 200,
+            'checkout_orders' => $checkout_orders
         ]);
     }
 }

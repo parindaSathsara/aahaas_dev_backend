@@ -608,6 +608,7 @@ Route::group(['middleware' => 'api'], function () {
     Route::get('/get-hotel-orders/{id}', [CustomerOrdersController::class, 'fetchHotelCusId']);
     Route::get('/fetch-all-order-userwise/{id}', [CustomerOrdersController::class, 'fetchAllOrderByUserId']);
     Route::get('/fetch-order-info-orderidwise/{id}', [CustomerOrdersController::class, 'getDetailsByOrderId']);
+    Route::get('/fetch-order-status-count/{id}',  [CustomerOrdersController::class, 'getStatusCountByUserId']);
 
 
 
@@ -691,6 +692,7 @@ Route::group(['middleware' => 'api'], function () {
     Route::get('/get_lifestyle_recent_orders', [OrderDashboardController::class, 'getRecentLifeStyleOrders']);
     Route::get('/get_education_recent_orders', [OrderDashboardController::class, 'getRecentEducationOrders']);
     Route::get('/get_all_essnoness_orders', [OrderDashboardController::class, 'getEssNonEsAllOrders']);
+
     Route::post('/get_all_payemnt_transaction_data', [OrderDashboardController::class, 'getOrderPayTransaction']);
     Route::post('/change_order_delivery_status', [OrderDashboardController::class, 'changeOrderStatus']);
     Route::get('/fetch_flight_reservation', [OrderDashboardController::class, 'fetchAllFLightReservations']);
@@ -732,4 +734,14 @@ Route::group(['middleware' => 'api'], function () {
     Route::post('/check_email', [SellerController::class, 'sendEmail']);
     // Route::post('/aahaas_hotel_push_meta', [CommonHotel_APIController::class, 'pushAahaasHotel']);
     Route::post('/hotel_meta_data_push', [HotelMeta::class, 'createHotelDetailsBeds']);
+
+    Route::get('/get_hotel_distance', [HotelMeta::class, 'gethotelDistance']);
+
+
+
+
+
+    //Routes For Dashboard (Lifestyle)
+    Route::get('/get_lifestyle_orders/{id}', [LifeStylesController::class, 'getLifestyleOrders']);
+    Route::get('/get_lifestyle_orders_by_checkout_id/{checkout_id}', [LifestyleController::class, 'getLifestyleOrdersByCheckoutId']);
 });

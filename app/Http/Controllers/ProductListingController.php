@@ -388,7 +388,7 @@ class ProductListingController extends Controller
 
         if ($category1 != 0 && $category2 != 0 && $category3 != 0 && $category4 != 0) {
             $whereArray = [['tbl_product_details.category1', '=', $category1], ['tbl_product_details.category2', '=', $category2], ['tbl_product_details.category3', '=', $category3], ['tbl_product_details.category4', '=', $category4]];
-        } else if ($category3 != 0 && $category2 != 0 && $category3 != 0) {
+        } else if ($category1 != 0 && $category2 != 0 && $category3 != 0) {
             $whereArray = [['tbl_product_details.category1', '=', $category1], ['tbl_product_details.category2', '=', $category2], ['tbl_product_details.category3', '=', $category3]];
         } else if ($category1 != 0 && $category2 != 0) {
             $whereArray = [['tbl_product_details.category1', '=', $category1], ['tbl_product_details.category2', '=', $category2]];
@@ -410,8 +410,8 @@ class ProductListingController extends Controller
                 ->join('tbl_product_details', 'tbl_product_listing.id', '=', 'tbl_product_details.listing_id')
                 // ->join('tbl_product_listing_rates', 'tbl_listing_inventory.id', '=', 'tbl_product_listing_rates.inventory_id','inner','tbl_product_listing_rates.qty==0')
 
-                ->join("tbl_product_listing_rates",function($join){
-                    $join->on("tbl_listing_inventory.id","=","tbl_product_listing_rates.inventory_id")->where('tbl_product_listing_rates.qty', '>', 0);;
+                ->join("tbl_product_listing_rates", function ($join) {
+                    $join->on("tbl_listing_inventory.id", "=", "tbl_product_listing_rates.inventory_id")->where('tbl_product_listing_rates.qty', '>', 0);;
                 })
 
                 ->leftJoin('tbl_listing_discount', 'tbl_product_listing.id', '=', 'tbl_listing_discount.listing_id')
@@ -439,7 +439,7 @@ class ProductListingController extends Controller
                     'tbl_listing_inventory.variant_type4',
                     DB::raw("min(tbl_product_listing_rates.mrp) AS mrp_price")
                 )
-                ->orderBy('tbl_product_listing.id','desc')
+                ->orderBy('tbl_product_listing.id', 'desc')
                 ->groupBy('tbl_product_listing.id')
                 ->where($whereArray)
                 ->limit($limit)

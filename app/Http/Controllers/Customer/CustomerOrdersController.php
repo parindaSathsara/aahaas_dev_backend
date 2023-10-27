@@ -213,4 +213,70 @@ class CustomerOrdersController extends Controller
             throw $ex;
         }
     }
+
+    public function getStatusCountByUserId($id)
+    {
+        try {
+            $PendingCount = DB::table('tbl_checkouts')->where('tbl_checkouts.cx_id', '=', $id)
+                ->where('tbl_checkouts.delivery_status', 'Pending')
+                ->count();
+
+            $OngoingCount = DB::table('tbl_checkouts')->where('tbl_checkouts.cx_id', '=', $id)
+                ->where('tbl_checkouts.status', 'Booked')
+                ->count();
+
+            $CompletedCount = DB::table('tbl_checkouts')->where('tbl_checkouts.cx_id', '=', $id)
+                ->where('tbl_checkouts.delivery_status', 'Confirmed',)
+                ->count();
+
+            $Products = DB::table('tbl_checkouts')->where('tbl_checkouts.cx_id', '=', $id)
+                ->leftJoin('tbl_lifestyle', 'tbl_checkouts.lifestyle_id', '=', 'tbl_lifestyle.lifestyle_id')
+                ->leftJoin('edu_tbl_education', 'tbl_checkouts.education_id', '=', 'edu_tbl_education.education_id')
+                ->leftJoin('tbl_hotel', 'tbl_checkouts.hotel_id', '=', 'tbl_hotel.id')
+                ->leftJoin('tbl_essentials_preorder', 'tbl_checkouts.essnoness_id', '=', 'tbl_essentials_preorder.essential_pre_order_id')
+                ->select(
+                    'tbl_checkouts.id AS MainTId',
+                    'tbl_checkouts.*',
+                    'tbl_checkouts.currency AS ItemCurrency',
+                    'tbl_checkouts.status AS CheckoutStatus',
+                    'tbl_checkouts.quantity AS ReqQTy',
+                    'tbl_checkouts.child_rate AS ChckoutChildRate',
+                    'tbl_checkouts.adult_rate AS ChckoutAdultdRate',
+                    'tbl_lifestyle.*',
+                    'tbl_lifestyle.vendor_id AS LifestyleVendor',
+                    'tbl_lifestyle.latitude AS LifestyleLatitude',
+                    'tbl_lifestyle.longitude AS LifestyleLongitude',
+                    'edu_tbl_education.status AS EduStatus',
+                    'edu_tbl_education.vendor_id AS EduVendor',
+                    'edu_tbl_education.user_active AS EduActive',
+                    'edu_tbl_education.*',
+                    'tbl_hotel.*',
+                    'tbl_hotel.longtitude AS HtlLong',
+                    'tbl_hotel.latitude AS HtlLat',
+                    'tbl_hotel.trip_advisor_link AS HtlTripAdvisor',
+                    'tbl_hotel.country AS HtlCountry',
+                    'tbl_hotel.city AS HtlCity',
+                    'tbl_hotel.micro_location AS HtlMicroLocation',
+                    'tbl_hotel.vendor_id AS HtlVendor',
+                    'tbl_essentials_preorder.address AS EssenAddress',
+                    'tbl_essentials_preorder.city AS EssenCity',
+                    'tbl_essentials_preorder.quantity AS EssenQuantity',
+                    'tbl_essentials_preorder.status AS EssenStatus',
+                    'tbl_essentials_preorder.*'
+                )
+                ->get();
+
+
+
+            return response([
+                'status' => 200,
+                'PendingCount' => $PendingCount,
+                'OngoingCount' => $OngoingCount,
+                'CompletedCount' => $CompletedCount,
+                'Products' => $Products
+            ]);
+        } catch (\Exception $ex) {
+            throw $ex;
+        }
+    }
 }

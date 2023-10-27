@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Str;
 
+use Illuminate\Http\Request;
+
 class SmithWatermanGotoh
 {
     private $gapValue;
@@ -147,6 +149,7 @@ class HotelMeta extends Model
 
     use HasApiTokens, HasFactory, Notifiable;
 
+
     protected $table = 'aahaas_hotel_meta';
 
     public $timestamps = false;
@@ -246,17 +249,26 @@ class HotelMeta extends Model
         return $q;
     }
 
+
+    public function gethotelDistance($start, $end)
+    {
+        $url = "https://maps.googleapis.com/maps/api/distancematrix/json?destinations=" . $start . "&origins=" . $end . "&key=AIzaSyB3x9uy0MRBuz4McmPvm-tRCjvq8VgFKOg";
+        $response = Http::withHeaders($this->getHeader())->get($url)->json();
+        return $response['rows'][0]['elements'][0]['distance']['value'];
+    }
+
     //HotelBeds Data Feeding Route
     public function createHotelDetailsBeds()
     {
+
 
         try {
 
             // return $mainArray[] = $this->sqlMethod('Berjaya Hotel Colombo');
 
-            ini_set('max_execution_time', 360);
+            ini_set('max_execution_time', 1000);
 
-            $aahaasMetaOrigin = DB::table('aahaas_hotel_meta')->select('*')->get();
+            $aahaasMetaOrigin = DB::table('aahaas_hotel_meta')->select('*')->limit(20)->get();
 
             $url = 'https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels?';
 
@@ -264,14 +276,14 @@ class HotelMeta extends Model
             $Details['countryCode'] = 'LK';
             $Details['language'] = 'ENG';
             $Details['from'] = '1';
-            $Details['to'] = '320';
+            $Details['to'] = '20';
             $Details['useSecondaryLanguage'] = 'false';
 
             $url .= http_build_query($Details);
 
             $response = Http::withHeaders($this->getHeader())->get($url)->json();
 
-            return $response;
+
 
             $mainArray = array();
             $array = array();
@@ -279,6 +291,8 @@ class HotelMeta extends Model
             $obj = new SmithWatermanGotoh();
 
 
+
+            // return $response;
 
             if (count($response['hotels']) != 0) {
 
@@ -291,24 +305,33 @@ class HotelMeta extends Model
 
                             $ahsHotel = preg_replace('/\s+/', '', str_replace($row->hotelName, '', 'Hotel'));
                             $bedHotel = preg_replace('/\s+/', '', str_replace($hotel['name']['content'], '', 'Hotel'));
-                            // if (str_contains($hotel['name']['content'], 'Hotel')) {
+                            // // if (str_contains($hotel['name']['content'], 'Hotel')) {
 
-                            similar_text(preg_replace('/\s+/', '', strtolower($bedHotel)), preg_replace('/\s+/', '', strtolower($ahsHotel)), $percent);
+                            // similar_text(preg_replace('/\s+/', '', strtolower($bedHotel)), preg_replace('/\s+/', '', strtolower($ahsHotel)), $percent);
 
                             // similar_text((string)round((float)$hotel['coordinates']['latitude'], 3) . "," . (string)round((float)$hotel['coordinates']['longitude'], 3), (string)round((float)$row->latitude, 3) . "," . (string)round((float)$row->longitude, 3), $percentDistance);
 
-                            $distance = $this->getDistance((string)round((float)$hotel['coordinates']['latitude'], 3), (string)round((float)$row->longitude, 3), (string)round((float)$row->latitude, 3), (string)round((float)$hotel['coordinates']['longitude'], 3));
+                            // $hotelDistance = $this->getDistance((string)round((float)$hotel['coordinates']['latitude'], 3), (string)round((float)$row->longitude, 3), (string)round((float)$row->latitude, 3), (string)round((float)$hotel['coordinates']['longitude'], 3));
 
-                            if ($distance < 100) {
+                            $latlonStart = $hotel['coordinates']['latitude'] . "," . $hotel['coordinates']['longitude'];
+                            $latlonEnd = $row->latitude . "," . $row->longitude;
+                            // return $this->gethotelDistance($latlonStart, $latlonEnd);
+
+                            $hotelDistance = $this->gethotelDistance($latlonStart, $latlonEnd);
+
+                            if ($hotelDistance < 200) {
                                 if ($obj->compare($ahsHotel, $bedHotel) >= 0.8) {
-                                    $array["percent"] = $obj->compare($ahsHotel, $bedHotel);
+                                    // $array["percent"] = $obj->compare($ahsHotel, $bedHotel);
                                     $array["nameOrigin"] = $row->hotelName;
                                     $array["nameBeds"] = $hotel['name']['content'];
-                                    $array["distance"] = $distance;
+                                    $array["distance"] = $hotelDistance;
+
+                                    $array["latLon"] = $latlonStart . "|" . $latlonEnd;
 
                                     $mainArray['Mapped'][] = $array;
                                 }
                             }
+
                             // else {
 
                             //     if ($distance < 500 && $distance > 100) {
