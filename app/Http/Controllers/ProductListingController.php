@@ -711,7 +711,7 @@ class ProductListingController extends Controller
                         'flight_trip_type' => null,
                         'flight_total_price' => null,
                         'related_order_id' => $request->input('preoid'),
-                        'status' => 'Booked',
+                        'status' => 'CustomerOrdered',
                         'delivery_status' => null,
                         'cx_id' => $request['user_id'],
                     ]);
@@ -738,7 +738,7 @@ class ProductListingController extends Controller
                         'flight_trip_type' => null,
                         'flight_total_price' => null,
                         'related_order_id' => $request->input('preoid'),
-                        'status' => 'Booked',
+                        'status' => 'CustomerOrdered',
                         'delivery_status' => null,
                         'cx_id' => $request['user_id'],
                     ]);

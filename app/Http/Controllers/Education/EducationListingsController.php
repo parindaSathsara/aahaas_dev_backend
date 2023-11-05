@@ -202,7 +202,7 @@ class EducationListingsController extends Controller
                     'flight_trip_type' => null,
                     'flight_total_price' => null,
                     'related_order_id' => $request->input('education_id'),
-                    'status' => 'Booked',
+                    'status' => 'CustomerOrdered',
                     'delivery_status' => null,
                     'cx_id' => $educationBookings->user_id,
                 ]);
