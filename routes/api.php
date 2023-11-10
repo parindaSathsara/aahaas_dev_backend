@@ -231,7 +231,6 @@ Route::group(['middleware' => 'api'], function () {
     Route::get('/get-product-inventory/{id}', [ProductListingController::class, 'getProductInventory']);
     Route::get('/get-list-data-with-discount/{category1}/{category2}/{category3}/{category4}/{limit}', [ProductListingController::class, 'getProdListingWithDicounts']);
 
-
     Route::get('/get-list-data-with-discount-related/{id}/{mainId}/{subId}/{brand}/{limit}', [ProductListingController::class, 'getProductRelated']);
     // Route::get('/generate-listing-category-id', [ProductListingController::class, 'generateListingId']);
     // Route::get('/generate-listing-category-id', [ProductListingController::class, 'generateListingId']);
@@ -606,10 +605,17 @@ Route::group(['middleware' => 'api'], function () {
     Route::get('/get-edu-orders/{id}', [CustomerOrdersController::class, 'fetchEducationByCusId']);
     Route::get('/get-ls-orders/{id}', [CustomerOrdersController::class, 'fetchLifeStyleCusId']);
     Route::get('/get-hotel-orders/{id}', [CustomerOrdersController::class, 'fetchHotelCusId']);
-    Route::get('/fetch-all-order-userwise/{id}', [CustomerOrdersController::class, 'fetchAllOrderByUserId']);
+    Route::get('/fetch-all-order-userwise/{id}/{status}', [CustomerOrdersController::class, 'fetchAllOrderByUserId']);
     Route::get('/fetch-order-info-orderidwise/{id}', [CustomerOrdersController::class, 'getDetailsByOrderId']);
     Route::get('/fetch-order-status-count/{id}',  [CustomerOrdersController::class, 'getStatusCountByUserId']);
 
+
+
+    //Mobile Api Routes
+    Route::get('/getCustomerCardData/{id}', [CustomerOrdersController::class, 'getCustomerCardData']);
+
+    Route::get('/getCustomerRecentOrders/{id}', [CustomerOrdersController::class, 'getCustomerRecentOrders']);
+    Route::get('/getOrderDetailsByOrderID/{oid}', [CustomerOrdersController::class, 'getOrderDetailsByCusIDOrderID']);
 
 
 

@@ -149,7 +149,7 @@ class AuthController extends Controller
                     $attempts = session()->get('login.attempts', 1); // get attempts, default: 0
                     session()->put('login.attempts', $attempts + 1);
 
-                    if ($attemps >= 5) {
+                    if ($attemps >= 20) {
                         return response()->json([
                             'status' => 403,
                             'error_message' => 'Too many attemps',

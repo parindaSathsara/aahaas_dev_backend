@@ -613,6 +613,8 @@ class ProductListingController extends Controller
             ]);
         }
     }
+
+
     /* Get Data from Product listing with Dicounts Function Ending */
 
 
