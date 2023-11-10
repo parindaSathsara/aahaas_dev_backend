@@ -129,7 +129,7 @@ class LifeStyleBookingController extends Controller
                                 'flight_trip_type' => null,
                                 'flight_total_price' => null,
                                 'related_order_id' => $request->input('lifestyle_id'),
-                                'status' => 'Booked',
+                                'status' => 'CustomerOrdered',
                                 'delivery_status' => null,
                                 'cx_id' => $newLifeStyleBooking->user_id,
                             ]);
