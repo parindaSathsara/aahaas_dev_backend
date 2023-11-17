@@ -228,6 +228,9 @@ Route::group(['middleware' => 'api'], function () {
 
     Route::get('/get-list-data', [ProductListingController::class, 'getProductListingData']);
 
+
+    Route::get('/get-list-data-test', [ProductListingController::class, 'getProductData']);
+
     Route::get('/get-product-inventory/{id}', [ProductListingController::class, 'getProductInventory']);
     Route::get('/get-list-data-with-discount/{category1}/{category2}/{category3}/{category4}/{limit}', [ProductListingController::class, 'getProdListingWithDicounts']);
 
@@ -608,8 +611,6 @@ Route::group(['middleware' => 'api'], function () {
     Route::get('/fetch-all-order-userwise/{id}/{status}', [CustomerOrdersController::class, 'fetchAllOrderByUserId']);
     Route::get('/fetch-order-info-orderidwise/{id}', [CustomerOrdersController::class, 'getDetailsByOrderId']);
     Route::get('/fetch-order-status-count/{id}',  [CustomerOrdersController::class, 'getStatusCountByUserId']);
-
-
 
     //Mobile Api Routes
     Route::get('/getCustomerCardData/{id}', [CustomerOrdersController::class, 'getCustomerCardData']);

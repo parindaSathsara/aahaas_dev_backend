@@ -372,6 +372,10 @@ class ProductListingController extends Controller
     /* Get Data from Product Listing Function Ending */
 
 
+    public function getProductData(){
+        ProductListing::get();
+    }
+
     public function getProdListingWithDicounts($category1, $category2, $category3, $category4, $limit)
     {
 
