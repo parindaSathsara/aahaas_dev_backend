@@ -230,7 +230,7 @@ class PaymentController extends Controller
         CheckoutID::create([
             'checkout_date' => $request['date'],
             'user_id' => $request['userid'],
-            'checkout_status' => $request['status'],
+            'checkout_status' => "CustomerOrdered",
             'total_amount' => $request['totAmount'],
             'paid_amount' => $request['paidTot'],
             'balance_amount' => $request['balanceTot'],
