@@ -210,6 +210,9 @@ class ProductListingController extends Controller
                 'created_at' => $currentTime,
                 'updated_at' => $currentTime
             ]);
+            
+
+            
             ProductListingRates::create([
                 'inventory_id' => $listingInventory->id,
                 'active_start_date' => 'Test',
