@@ -614,7 +614,6 @@ Route::group(['middleware' => 'api'], function () {
 
     //Mobile Api Routes
     Route::get('/getCustomerCardData/{id}', [CustomerOrdersController::class, 'getCustomerCardData']);
-
     Route::get('/getCustomerCancelledOrders/{id}', [CustomerOrdersController::class, 'getCustomerCancelledOrders']);
     Route::get('/getCustomerRecentOrders/{id}', [CustomerOrdersController::class, 'getCustomerRecentOrders']);
     Route::get('/getOrderDetailsByOrderID/{oid}', [CustomerOrdersController::class, 'getOrderDetailsByCusIDOrderID']);
