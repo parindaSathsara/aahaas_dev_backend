@@ -50,14 +50,32 @@ class CustomerOrdersController extends Controller
 
     public function getCustomerCardData($id)
     {
-        $pendingCount = DB::table('tbl_checkout_ids')->where('user_id', $id)->where('checkout_status', "CustomerOrdered")->count();
-        $ongoingCount = DB::table('tbl_checkout_ids')->where('user_id', $id)->where('checkout_status', "Approved")->count();
-        $completedCount = DB::table('tbl_checkout_ids')->where('user_id', $id)->where('checkout_status', "Completed")->count();
+        // $pendingCount = DB::table('tbl_checkout_ids')->where('user_id', $id)->where('checkout_status', "CustomerOrdered")->count();
+        // $ongoingCount = DB::table('tbl_checkout_ids')->where('user_id', $id)->where('checkout_status', "Approved")->count();
+        // $completedCount = DB::table('tbl_checkout_ids')->where('user_id', $id)->where('checkout_status', "Completed")->count();
 
         $pendingBalance = DB::table('tbl_checkout_ids')->selectRaw("SUM(balance_amount) as total_amount")->where('user_id', $id)->where('payment_type', "MinimumPayment")->whereNot('checkout_status', "Completed")->first();
 
 
-        return response(["status" => 200, 'pending' => $pendingCount, 'ongoing' => $ongoingCount, 'completed' => $completedCount, 'pendingBalance' => $pendingBalance->total_amount == null ? 0 : $pendingBalance->total_amount]);
+        $pendingCount = DB::table('tbl_checkout_ids')->where('tbl_checkout_ids.user_id', '=', $id)
+            ->where('tbl_checkout_ids.checkout_status', "CustomerOrdered")
+            ->join('tbl_checkouts', 'tbl_checkout_ids.id', '=', 'tbl_checkouts.checkout_id')
+            ->groupBy('tbl_checkouts.checkout_id')->get();
+
+
+        $ongoingCount = DB::table('tbl_checkout_ids')->where('tbl_checkout_ids.user_id', '=', $id)
+            ->where('tbl_checkout_ids.checkout_status', "Approved")
+            ->join('tbl_checkouts', 'tbl_checkout_ids.id', '=', 'tbl_checkouts.checkout_id')
+            ->groupBy('tbl_checkouts.checkout_id')->get();
+
+
+
+        $completedCount = DB::table('tbl_checkout_ids')->where('tbl_checkout_ids.user_id', '=', $id)
+            ->where('tbl_checkout_ids.checkout_status', "Completed")
+            ->join('tbl_checkouts', 'tbl_checkout_ids.id', '=', 'tbl_checkouts.checkout_id')
+            ->groupBy('tbl_checkouts.checkout_id')->get();
+
+        return response(["status" => 200, 'pending' => count($pendingCount), 'ongoing' => count($ongoingCount), 'completed' => count($completedCount), 'pendingBalance' => $pendingBalance->total_amount == null ? 0 : $pendingBalance->total_amount]);
     }
 
 
@@ -122,7 +140,13 @@ class CustomerOrdersController extends Controller
 
     public function getCustomerRecentOrders($id)
     {
+        // $currentTime = \Carbon\Carbon::now('Asia/Kolkata')->format('Y-m-d');
         $Query = DB::table('tbl_checkouts')->where('tbl_checkouts.cx_id', '=', $id)
+            // ->where('tbl_checkouts.delivery_date', '>=', $currentTime)
+            ->orWhere('tbl_checkouts.status', '=', 'CustomerOrdered')
+            ->orWhere('tbl_checkouts.status', '=', 'Approved')
+
+
             // ->leftJoin('tbl_checkout_ids', 'tbl_checkouts.checkout_id', '=', 'tbl_checkout_ids.id')
             ->leftJoin('tbl_product_listing', 'tbl_checkouts.essnoness_id', '=', 'tbl_product_listing.id')
             ->leftJoin('tbl_maincategory', 'tbl_checkouts.main_category_id', '=', 'tbl_maincategory.id')
@@ -326,8 +350,10 @@ class CustomerOrdersController extends Controller
                     ->orderBy('tbl_checkouts.checkout_id', 'DESC')
                     ->get();
 
-                $Query2 = DB::table('tbl_checkouts')->where('tbl_checkouts.cx_id', '=', $id)
-                    ->leftJoin('tbl_checkout_ids', 'tbl_checkouts.checkout_id', '=', 'tbl_checkout_ids.id')
+
+
+                $Query2 = DB::table('tbl_checkout_ids')->where('tbl_checkout_ids.user_id', '=', $id)
+                    ->join('tbl_checkouts', 'tbl_checkout_ids.id', '=', 'tbl_checkouts.checkout_id')
                     ->select('tbl_checkouts.checkout_id AS OrderId', 'tbl_checkout_ids.checkout_date AS BookedDay', 'tbl_checkout_ids.checkout_status AS BookStatus', 'tbl_checkout_ids.*', 'tbl_checkouts.*')
                     ->orderBy('tbl_checkouts.checkout_id', 'DESC')
                     ->groupBy('tbl_checkouts.checkout_id')->get();
@@ -393,9 +419,10 @@ class CustomerOrdersController extends Controller
                     ->orderBy('tbl_checkouts.checkout_id', 'DESC')
                     ->get();
 
-                $Query2 = DB::table('tbl_checkouts')->where('tbl_checkouts.cx_id', '=', $id)
-                    ->where('tbl_checkouts.status', $status)
-                    ->leftJoin('tbl_checkout_ids', 'tbl_checkouts.checkout_id', '=', 'tbl_checkout_ids.id')
+
+                $Query2 = DB::table('tbl_checkout_ids')->where('tbl_checkout_ids.user_id', '=', $id)
+                    ->where('tbl_checkout_ids.checkout_status', $status)
+                    ->join('tbl_checkouts', 'tbl_checkout_ids.id', '=', 'tbl_checkouts.checkout_id')
                     ->select('tbl_checkouts.checkout_id AS OrderId', 'tbl_checkout_ids.checkout_date AS BookedDay', 'tbl_checkout_ids.checkout_status AS BookStatus', 'tbl_checkout_ids.*', 'tbl_checkouts.*')
                     ->orderBy('tbl_checkouts.checkout_id', 'DESC')
                     ->groupBy('tbl_checkouts.checkout_id')->get();
