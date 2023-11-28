@@ -61,14 +61,14 @@ class CustomerOrdersController extends Controller
     }
 
 
-    
+
 
 
 
     public function getCustomerCancelledOrders($id)
     {
         $Query = DB::table('tbl_checkouts')->where('tbl_checkouts.cx_id', '=', $id)
-        ->where('tbl_checkouts.status', '=', 'Cancel')
+            ->where('tbl_checkouts.status', '=', 'Cancel')
             // ->leftJoin('tbl_checkout_ids', 'tbl_checkouts.checkout_id', '=', 'tbl_checkout_ids.id')
             ->leftJoin('tbl_product_listing', 'tbl_checkouts.essnoness_id', '=', 'tbl_product_listing.id')
             ->leftJoin('tbl_maincategory', 'tbl_checkouts.main_category_id', '=', 'tbl_maincategory.id')
@@ -273,7 +273,7 @@ class CustomerOrdersController extends Controller
     public function fetchAllOrderByUserId($id, $status)
     {
 
-        if($status=="All"){
+        if ($status == "All") {
             try {
 
                 $Query = DB::table('tbl_checkouts')->where('tbl_checkouts.cx_id', '=', $id)
@@ -287,13 +287,13 @@ class CustomerOrdersController extends Controller
                     ->leftJoin('edu_tbl_booking', 'tbl_checkouts.related_order_id', '=', 'edu_tbl_booking.booking_id')
                     ->leftJoin('edu_tbl_rate', 'edu_tbl_booking.rate_id', '=', 'edu_tbl_rate.id')
                     ->leftJoin('edu_tbl_education', 'edu_tbl_booking.education_id', '=', 'edu_tbl_education.education_id')
-    
+
                     ->leftJoin('tbl_hotels_pre_booking', 'tbl_checkouts.related_order_id', '=', 'tbl_hotels_pre_booking.booking_id')
                     ->leftJoin('tbl_hotel_resevation', 'tbl_hotels_pre_booking.booking_id', '=', 'tbl_hotel_resevation.pre_id')
                     ->leftJoin('tbl_flight_resevation', 'tbl_checkouts.flight_id', '=', 'tbl_flight_resevation.id')
                     ->leftJoin('tbl_essentials_preorder', 'tbl_checkouts.related_order_id', '=', 'tbl_essentials_preorder.essential_pre_order_id')
-    
-    
+
+
                     ->select(
                         '*',
                         'tbl_checkout_ids.id AS OrderId',
@@ -308,7 +308,7 @@ class CustomerOrdersController extends Controller
                         'tbl_lifestyle_bookings.booking_status AS LifeStyleBookStatus',
                         'tbl_hotel_resevation.cancelation_deadline AS HotelCancelDate',
                         'tbl_hotels_pre_booking.booking_total AS HotelTotAmount',
-    
+
                         'tbl_hotel_resevation.no_of_adults AS NoAdults',
                         'tbl_hotel_resevation.no_of_childs AS NoChilds',
                         'tbl_hotel_resevation.bed_type AS BedType',
@@ -320,18 +320,18 @@ class CustomerOrdersController extends Controller
                         'edu_tbl_booking.booking_date AS EduBookDate',
                         'tbl_flight_resevation.booking_status AS FlightBookStat',
                         'edu_tbl_rate.deadline_no_ofdays AS DeadlineNoDays',
-    
-    
+
+
                     )
                     ->orderBy('tbl_checkouts.checkout_id', 'DESC')
                     ->get();
-    
+
                 $Query2 = DB::table('tbl_checkouts')->where('tbl_checkouts.cx_id', '=', $id)
                     ->leftJoin('tbl_checkout_ids', 'tbl_checkouts.checkout_id', '=', 'tbl_checkout_ids.id')
                     ->select('tbl_checkouts.checkout_id AS OrderId', 'tbl_checkout_ids.checkout_date AS BookedDay', 'tbl_checkout_ids.checkout_status AS BookStatus', 'tbl_checkout_ids.*', 'tbl_checkouts.*')
                     ->orderBy('tbl_checkouts.checkout_id', 'DESC')
                     ->groupBy('tbl_checkouts.checkout_id')->get();
-    
+
                 return response([
                     'status' => 200,
                     'query_data1' => $Query,
@@ -340,8 +340,7 @@ class CustomerOrdersController extends Controller
             } catch (\Exception $ex) {
                 throw $ex;
             }
-        }
-        else{
+        } else {
             try {
 
                 $Query = DB::table('tbl_checkouts')->where('tbl_checkouts.cx_id', '=', $id)
@@ -355,13 +354,13 @@ class CustomerOrdersController extends Controller
                     ->leftJoin('edu_tbl_booking', 'tbl_checkouts.related_order_id', '=', 'edu_tbl_booking.booking_id')
                     ->leftJoin('edu_tbl_rate', 'edu_tbl_booking.rate_id', '=', 'edu_tbl_rate.id')
                     ->leftJoin('edu_tbl_education', 'edu_tbl_booking.education_id', '=', 'edu_tbl_education.education_id')
-    
+
                     ->leftJoin('tbl_hotels_pre_booking', 'tbl_checkouts.related_order_id', '=', 'tbl_hotels_pre_booking.booking_id')
                     ->leftJoin('tbl_hotel_resevation', 'tbl_hotels_pre_booking.booking_id', '=', 'tbl_hotel_resevation.pre_id')
                     ->leftJoin('tbl_flight_resevation', 'tbl_checkouts.flight_id', '=', 'tbl_flight_resevation.id')
                     ->leftJoin('tbl_essentials_preorder', 'tbl_checkouts.related_order_id', '=', 'tbl_essentials_preorder.essential_pre_order_id')
-    
-    
+
+
                     ->select(
                         '*',
                         'tbl_checkout_ids.id AS OrderId',
@@ -376,7 +375,7 @@ class CustomerOrdersController extends Controller
                         'tbl_lifestyle_bookings.booking_status AS LifeStyleBookStatus',
                         'tbl_hotel_resevation.cancelation_deadline AS HotelCancelDate',
                         'tbl_hotels_pre_booking.booking_total AS HotelTotAmount',
-    
+
                         'tbl_hotel_resevation.no_of_adults AS NoAdults',
                         'tbl_hotel_resevation.no_of_childs AS NoChilds',
                         'tbl_hotel_resevation.bed_type AS BedType',
@@ -388,18 +387,19 @@ class CustomerOrdersController extends Controller
                         'edu_tbl_booking.booking_date AS EduBookDate',
                         'tbl_flight_resevation.booking_status AS FlightBookStat',
                         'edu_tbl_rate.deadline_no_ofdays AS DeadlineNoDays',
-    
-    
+
+
                     )
                     ->orderBy('tbl_checkouts.checkout_id', 'DESC')
                     ->get();
-    
+
                 $Query2 = DB::table('tbl_checkouts')->where('tbl_checkouts.cx_id', '=', $id)
+                    ->where('tbl_checkouts.status', $status)
                     ->leftJoin('tbl_checkout_ids', 'tbl_checkouts.checkout_id', '=', 'tbl_checkout_ids.id')
                     ->select('tbl_checkouts.checkout_id AS OrderId', 'tbl_checkout_ids.checkout_date AS BookedDay', 'tbl_checkout_ids.checkout_status AS BookStatus', 'tbl_checkout_ids.*', 'tbl_checkouts.*')
                     ->orderBy('tbl_checkouts.checkout_id', 'DESC')
                     ->groupBy('tbl_checkouts.checkout_id')->get();
-    
+
                 return response([
                     'status' => 200,
                     'query_data1' => $Query,
@@ -409,7 +409,7 @@ class CustomerOrdersController extends Controller
                 throw $ex;
             }
         }
-        
+
     }
 
     public function getDetailsByOrderId($id)
@@ -481,7 +481,7 @@ class CustomerOrdersController extends Controller
                 ->count();
 
             $CompletedCount = DB::table('tbl_checkouts')->where('tbl_checkouts.cx_id', '=', $id)
-                ->where('tbl_checkouts.delivery_status', 'Confirmed',)
+                ->where('tbl_checkouts.delivery_status', 'Confirmed', )
                 ->count();
 
             $Products = DB::table('tbl_checkouts')->where('tbl_checkouts.cx_id', '=', $id)
