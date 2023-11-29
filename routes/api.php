@@ -81,6 +81,7 @@ use App\Http\Controllers\LifeStyles\Admin\LifeStyleCreatorController;
 use App\Models\Currencies;
 use App\Http\Controllers\Hotels\CommonHotel_APIController;
 use App\Http\Controllers\Hotels\HotelMetaController;
+use App\Http\Controllers\TBO_Hotel\TBOController;
 use App\Models\Hotel\HotelMeta\HotelMeta;
 use App\Models\Hotels\HotelInventory;
 use App\Models\Lifestyle\LifeStyle;
@@ -751,4 +752,16 @@ Route::group(['middleware' => 'api'], function () {
     //Routes For Dashboard (Lifestyle)
     Route::get('/get_lifestyle_orders/{id}', [LifeStylesController::class, 'getLifestyleOrders']);
     Route::get('/get_lifestyle_orders_by_checkout_id/{checkout_id}', [LifestyleController::class, 'getLifestyleOrdersByCheckoutId']);
+
+
+
+
+
+
+    //--------------------TBO_Hotels
+    Route::post('/get_hotels_by_latlon', [TBOController::class, 'getHotelsByLatLon']);
+    Route::post('/check', [TBOController::class, 'generateTBOToken']);
+
+
+    Route::post('/get_hotel_details/{id}/{provider}', [TBOController::class, 'hotelsDetails']);
 });
