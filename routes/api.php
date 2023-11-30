@@ -763,5 +763,5 @@ Route::group(['middleware' => 'api'], function () {
     Route::post('/check', [TBOController::class, 'generateTBOToken']);
 
 
-    Route::post('/get_hotel_details/{id}/{provider}', [TBOController::class, 'hotelsDetails']);
+    Route::post('/get_hotel_details/{id}/{provider}/{status}', [TBOController::class, 'hotelsDetails']);
 });
