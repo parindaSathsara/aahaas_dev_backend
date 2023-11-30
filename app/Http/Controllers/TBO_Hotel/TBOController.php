@@ -157,4 +157,12 @@ class TBOController extends Controller
             }
         }
     }
+
+
+
+    public function hotelBlockRoom(Request $request)
+    {
+        $ResultIndex = $request->input('ResultIndex');
+        $ResultIndex = $request->input('HotelCode');
+    }
 }
