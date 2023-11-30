@@ -7,6 +7,7 @@ use App\Models\Hotel\HotelMeta\HotelMeta;
 use App\Models\HotelsMeta\HotelsMeta;
 use App\Models\HotelsMeta\TBOUserTokens;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use IlluminateAgnostic\Arr\Support\Arr;
@@ -162,7 +163,42 @@ class TBOController extends Controller
 
     public function hotelBlockRoom(Request $request)
     {
-        $ResultIndex = $request->input('ResultIndex');
-        $ResultIndex = $request->input('HotelCode');
+
+        try {
+            $hotelMainResponse = json_decode($request->input('hotelMainRequest'));
+
+            $hotelRatesResponse = json_decode($request->input('hotelRatesRequest'));
+
+            $hotelBlockRoom = response()->json([
+                'ResultIndex' => $hotelMainResponse->hotelData->ResultIndex,
+                'HotelCode' => $hotelMainResponse->hotelData->HotelCode,
+                'HotelName' => $hotelMainResponse->hotelData->HotelName,
+                'GuestNationality' => "IN",
+                'NoOfRooms' => $request->input("NoOfRooms"),
+                'ClientReferenceNo' => "0",
+                'IsVoucherBooking' => "true",
+                'HotelRoomsDetails' => [[
+                    'RoomIndex' => $hotelRatesResponse->RoomIndex,
+                    'RoomTypeCode' => $hotelRatesResponse->RoomTypeCode,
+                    'RoomTypeName' => $hotelRatesResponse->RoomTypeName,
+                    'RatePlanCode' => $hotelRatesResponse->RatePlanCode,
+
+                    'BedTypeCode' => null,
+                    'SmokingPreference' => $hotelRatesResponse->SmokingPreference,
+                    'Supplements' => $hotelRatesResponse->HotelSupplements,
+                    'Price' => $hotelRatesResponse->Price,
+
+                ]],
+                'EndUserIp' => $request->ip(),
+                'TokenId' => $hotelMainResponse->tokenID,
+                'TraceId' => $request->input("TraceId"),
+            ]);
+
+
+
+            return $hotelBlockRoom;
+        } catch (Exception $e) {
+            return $e;
+        }
     }
 }
