@@ -54,7 +54,7 @@ class TBOController extends Controller
         return $request;
     }
 
-    public function hotelsDetails(Request $request, $id, $provider)
+    public function hotelsDetails(Request $request, $id, $provider, $status)
     {
 
         $checkInDate = $request->input('CheckInDate');
@@ -121,13 +121,28 @@ class TBOController extends Controller
 
                 if (count($filteredHotel) > 0) {
 
-                    return response()->json([
-                        'status' => 200,
-                        'hotelData' => $filteredHotel[0],
-                        'traceID' => $traceID,
-                        'resultIndex' => $filteredHotel[0]['ResultIndex'],
-                        'tokenID' => $response
-                    ]);
+                    if ($status == "details") {
+                        return response()->json([
+                            'status' => 200,
+                            'hotelData' => $filteredHotel[0],
+                            'traceID' => $traceID,
+                            'resultIndex' => $filteredHotel[0]['ResultIndex'],
+                            'tokenID' => $response
+                        ]);
+                    } else {
+                        //
+
+                        $requestHotelInfo['EndUserIp'] = $request->ip();
+                        $requestHotelInfo['TokenId'] =  $response;
+                        $requestHotelInfo['TraceId'] = $traceID;
+                        $requestHotelInfo['ResultIndex'] = $filteredHotel[0]['ResultIndex'];
+                        $requestHotelInfo['HotelCode'] =  $filteredHotel[0]['HotelCode'];
+
+                        $getRatesResult = Http::post('http://api.tektravels.com/BookingEngineService_Hotel/hotelservice.svc/rest/GetHotelRoom', $requestHotelInfo)->json();
+
+
+                        return $getRatesResult;
+                    }
                 } else {
                     return response()->json([
                         'status' => 401,
@@ -144,91 +159,10 @@ class TBOController extends Controller
     }
 
 
-    public function hotelCheckRates(Request $request, $id, $provider)
+
+    public function hotelBlockRoom(Request $request)
     {
-
-        $checkInDate = $request->input('CheckInDate');
-        $noOfNights = $request->input('NoOfNights');
-        $noOfRooms = $request->input('NoOfRooms');
-        $noOfAdults = $request->input('NoOfAdults');
-        $noOfChild = $request->input('NoOfChild');
-
-        if ($noOfChild > 0) {
-            $childAge = explode(',', $request->input('ChildAge'));
-        } else {
-            $childAge = null;
-        }
-
-
-        if ($provider == "hotelAhs") {
-            //Nothing
-        } else {
-            $response = $this->generateTBOToken($request);
-
-            $hotelMeta = HotelMeta::where("hotelCode", $id)->first();
-
-            $requestHotelInfo = [
-                "CheckInDate" => $checkInDate,
-                "NoOfNights" => $noOfNights,
-                "CountryCode" => "LK",
-                "CityId" => $hotelMeta->city_code,
-                "ResultCount" => null,
-                "PreferredCurrency" => "INR",
-                "GuestNationality" => "IN",
-                "NoOfRooms" => $noOfRooms,
-                "RoomGuests" => [
-                    [
-                        "NoOfAdults" => $noOfAdults,
-                        "NoOfChild" => $noOfChild,
-                        "ChildAge" => $childAge
-                    ]
-                ],
-                "MaxRating" => 5,
-                "MinRating" => 0,
-                "ReviewScore" => null,
-                "IsNearBySearchAllowed" => false,
-                "EndUserIp" => $request->ip(),
-                "TokenId" => $response['TokenId']
-            ];
-
-            // return $requestHotelInfo;
-
-
-            $getResults = Http::post('http://api.tektravels.com/BookingEngineService_Hotel/hotelservice.svc/rest/GetHotelResult/', $requestHotelInfo)->json();
-
-
-            // return $getResults;
-
-            if ($getResults['HotelSearchResult']['Error']['ErrorCode'] == 0) {
-                $traceID = $getResults['HotelSearchResult']['TraceId'];
-
-
-                $hotelResults = $getResults['HotelSearchResult']['HotelResults'];
-
-                $filteredHotel = array_values(Arr::where($hotelResults, function ($value, $key) use ($id) {
-                    return $value["HotelCode"] === $id;
-                }));
-
-                if (count($filteredHotel) > 0) {
-
-                    return response()->json([
-                        'status' => 200,
-                        'hotelData' => $filteredHotel[0],
-                        'traceID' => $traceID,
-                        'resultIndex' => $filteredHotel[0]['ResultIndex']
-                    ]);
-                } else {
-                    return response()->json([
-                        'status' => 401,
-                        'error_message' => "This hotel is not available for selected criteria."
-                    ]);
-                }
-            } else {
-                return response()->json([
-                    'status' => 401,
-                    'error_message' => $getResults['HotelSearchResult']['Error']['ErrorMessage']
-                ]);
-            }
-        }
+        $ResultIndex = $request->input('ResultIndex');
+        $ResultIndex = $request->input('HotelCode');
     }
 }
