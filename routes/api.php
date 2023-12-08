@@ -85,6 +85,7 @@ use App\Http\Controllers\TBO_Hotel\TBOController;
 use App\Models\Hotel\HotelMeta\HotelMeta;
 use App\Models\Hotels\HotelInventory;
 use App\Models\Lifestyle\LifeStyle;
+use App\Http\Controllers\HotelsMeta\HotelsBooking;
 
 /*
 |--------------------------------------------------------------------------
@@ -761,7 +762,9 @@ Route::group(['middleware' => 'api'], function () {
     //--------------------TBO_Hotels
     Route::post('/get_hotels_by_latlon', [TBOController::class, 'getHotelsByLatLon']);
     Route::post('/check', [TBOController::class, 'generateTBOToken']);
-
     Route::post('/hotelBlockRoom', [TBOController::class, 'hotelBlockRoom']);
     Route::post('/get_hotel_details/{id}/{provider}/{status}', [TBOController::class, 'hotelsDetails']);
+    Route::post('/reValidate_cart_hotel_before_booking', [TBOController::class, 'reValidateCartHotelBeforeBooking']);
+
+    Route::post('/add_hotel_to_cart', [HotelsBooking::class, 'hotelsPreBooking']);
 });

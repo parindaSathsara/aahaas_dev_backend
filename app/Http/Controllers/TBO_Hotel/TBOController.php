@@ -15,24 +15,72 @@ use IlluminateAgnostic\Arr\Support\Arr;
 class TBOController extends Controller
 {
 
+
+
+
     public function generateTBOToken(Request $request)
     {
-        $tboUserTokens = TBOUserTokens::where("token_ip", $request->ip())->where("created_at", ">", Carbon::now()->subDay())->where("created_at", "<", Carbon::now())->get();
+        // $tboUserTokens = TBOUserTokens::where("token_ip", $request->ip())->where("created_at", ">", Carbon::now()->subDay())->where("created_at", "<", Carbon::now())->get();
 
-        if (count($tboUserTokens) > 0) {
-            return $tboUserTokens[0]->token_code;
+        // if (count($tboUserTokens) > 0) {
+        //     return $tboUserTokens[0]->token_code;
+        // } else {
+
+        $authArray['ClientId'] = "ApiIntegrationNew";
+        $authArray['UserName'] = "Sharmila1";
+        $authArray['Password'] = "Sharmila@1234";
+        $authArray['EndUserIp'] = $request->ip();
+        // $hotelOrigin = Hotel::all();
+        $response = Http::post('http://api.tektravels.com/SharedServices/SharedData.svc/rest/Authenticate', $authArray)->json();
+
+        // TBOUserTokens::create(['token_code' => $response['TokenId'], 'token_ip' => $request->ip()]);
+
+        return $response['TokenId'];
+        // }
+    }
+
+    public function reValidateCartHotelBeforeBooking(Request $request)
+    {
+        $hotelCart = json_decode($request->blockData);
+
+
+        // return $hotelCart;
+
+        $request->replace(
+            [
+                "CheckInDate" => $hotelCart->CheckInDate,
+                "NoOfNights" => $hotelCart->NoOfNights,
+                "NoOfRooms" => $hotelCart->NoOfRooms,
+                "NoOfAdults" => $hotelCart->NoOfAdults,
+                "NoOfChild" => $hotelCart->NoOfChild,
+            ]
+        );
+
+        $hotelDetails = $this->hotelsDetails($request, $hotelCart->HotelID, "hotelTbo", "details")->getData();
+
+        if ($hotelDetails->status == 200) {
+
+            $hotelRoom = $this->hotelsDetails($request, $hotelCart->HotelID, "hotelTbo", "rates");
+
+
+            return $hotelRoom;
+
+            if ($hotelRoom["GetHotelRoomResult"]["Error"]["ErrorCode"] == 0) {
+                return response()->json([
+                    'status' => 200,
+                    'message' => "Rates fetching successfully"
+                ]);
+            } else {
+                return response()->json([
+                    'status' => 401,
+                    'error_message' => $hotelRoom["GetHotelRoomResult"]["Error"]["ErrorMessage"]
+                ]);
+            }
         } else {
-
-            $authArray['ClientId'] = "ApiIntegrationNew";
-            $authArray['UserName'] = "Sharmila1";
-            $authArray['Password'] = "Sharmila@1234";
-            $authArray['EndUserIp'] = $request->ip();
-            // $hotelOrigin = Hotel::all();
-            $response = Http::post('http://api.tektravels.com/SharedServices/SharedData.svc/rest/Authenticate', $authArray)->json();
-
-            TBOUserTokens::create(['token_code' => $response['TokenId'], 'token_ip' => $request->ip()]);
-
-            return $response['TokenId'];
+            return response()->json([
+                'status' => 401,
+                'error_message' => "This hotel can't checkout."
+            ]);
         }
     }
 
@@ -52,7 +100,11 @@ class TBOController extends Controller
 
         $request = HotelsMeta::whereRaw("{$harvasineRadius} < ?", [$radius])->get();
 
-        return $request;
+
+        return response()->json([
+            'status' => 200,
+            'data' => $request
+        ]);
     }
 
     public function hotelsDetails(Request $request, $id, $provider, $status)
@@ -63,6 +115,7 @@ class TBOController extends Controller
         $noOfRooms = $request->input('NoOfRooms');
         $noOfAdults = $request->input('NoOfAdults');
         $noOfChild = $request->input('NoOfChild');
+
 
         if ($noOfChild > 0) {
             $childAge = explode(',', $request->input('ChildAge'));
@@ -110,6 +163,9 @@ class TBOController extends Controller
 
             // return $getResults;
 
+
+            // return $getResults;
+
             if ($getResults['HotelSearchResult']['Error']['ErrorCode'] == 0) {
                 $traceID = $getResults['HotelSearchResult']['TraceId'];
 
@@ -131,6 +187,8 @@ class TBOController extends Controller
                             'tokenID' => $response
                         ]);
                     } else {
+
+                        // $responseHotelInfo["EndUserIpRest"]
                         //
 
                         $requestHotelInfo['EndUserIp'] = $request->ip();
@@ -191,7 +249,7 @@ class TBOController extends Controller
                 ]],
                 'EndUserIp' => $request->ip(),
                 'TokenId' => $hotelMainResponse->tokenID,
-                'TraceId' => $request->input("TraceId"),
+                'TraceId' => $request->input("traceId"),
             ]);
 
 

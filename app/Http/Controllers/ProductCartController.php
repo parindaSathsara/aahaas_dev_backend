@@ -6,6 +6,7 @@ use App\Models\CustomerCarts;
 use App\Models\CustomerCustomCarts;
 use App\Models\Education\EducationBookings;
 use App\Models\Hotels\HotelsPreBookings;
+use App\Models\HotelsMeta\HotelPreBooking;
 use App\Models\Lifestyle\LifeStyleBook;
 use Illuminate\Http\Request;
 use App\Models\ProductCart;
@@ -393,7 +394,7 @@ class ProductCartController extends Controller
                     DB::table('tbl_lifestyle_bookings')->where('lifestyle_booking_id', $related_id)->delete();
                     CustomerCustomCarts::where('lifestyle_pre_id', $related_id)->delete();
                 } else if ($mainCategoryID == 4) {
-                    HotelsPreBookings::where('booking_id', $related_id)->delete();
+                    HotelPreBooking::where('prebooking_id', $related_id)->delete();
                     CustomerCustomCarts::where('hotels_pre_id', $related_id)->delete();
                 } else if ($mainCategoryID == 5) {
                     // EducationBookings::where('booking_id', $related_id)->delete();
@@ -468,7 +469,7 @@ class ProductCartController extends Controller
                 ->leftJoin('tbl_product_listing_rates', 'tbl_listing_inventory.id', '=', 'tbl_product_listing_rates.inventory_id')
                 ->leftJoin('tbl_listing_discount', 'tbl_product_listing.id', '=', 'tbl_listing_discount.listing_id')
 
-                ->leftJoin('tbl_hotels_pre_booking', 'tbl_customer_carts.hotels_pre_id', '=', 'tbl_hotels_pre_booking.booking_id')
+                ->leftJoin('hotel_prebooking', 'tbl_customer_carts.hotels_pre_id', '=', 'hotel_prebooking.prebooking_id')
 
                 ->leftJoin('edu_tbl_booking', 'tbl_customer_carts.education_pre_id', '=', 'edu_tbl_booking.booking_id')
 
@@ -556,8 +557,8 @@ class ProductCartController extends Controller
                     // 'tbl_essentials_preorder.preffered_delivery_date AS PrefDelDate',
                     // 'tbl_essentials_preorder.message_to_seller AS MessageSeller',
 
-                    'tbl_hotels_pre_booking.*',
-                    'tbl_hotels_pre_booking.booking_id AS hotel_id',
+                    'hotel_prebooking.*',
+
 
                     'edu_tbl_booking.student_type',
                     'edu_tbl_booking.session_id',

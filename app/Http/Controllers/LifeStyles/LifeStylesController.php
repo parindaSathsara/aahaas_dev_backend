@@ -161,6 +161,7 @@ class LifeStylesController extends Controller
                 ->leftJoin('tbl_lifestyle_detail', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_detail.lifestyle_id')
                 ->join('tbl_lifestyle_inventory', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_inventory.lifestyle_id')
                 ->join('tbl_lifestyle_rates', 'tbl_lifestyle_inventory.lifestyle_inventory_id', '=', 'tbl_lifestyle_rates.lifestyle_inventory_id')
+
                 ->leftJoin('tbl_lifestyle_discount', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_discount.lifestyle_id')
                 ->select(
                     DB::raw("min(tbl_lifestyle_rates.adult_rate) AS adult_rate"),
