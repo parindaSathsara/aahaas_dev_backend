@@ -9,6 +9,7 @@ class HotelPreBooking extends Model
 {
     use HasFactory;
 
+    //
     protected $table = 'hotel_prebooking';
 
     // public $timestamps = false;
