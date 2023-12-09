@@ -43,7 +43,6 @@ class TBOController extends Controller
     {
         $hotelCart = json_decode($request->blockData);
 
-
         // return $hotelCart;
 
         $request->replace(
@@ -56,16 +55,40 @@ class TBOController extends Controller
             ]
         );
 
-        $hotelDetails = $this->hotelsDetails($request, $hotelCart->HotelID, "hotelTbo", "details")->getData();
+
+        // return $hotelCart->hotelMainRequest->hotelData->HotelCode;
+
+        $hotelDetails = $this->hotelsDetails($request, $hotelCart->hotelMainRequest->hotelData->HotelCode, "hotelTbo", "details")->getData();
+        // return $hotelDetails;
 
         if ($hotelDetails->status == 200) {
 
             $hotelRoom = $this->hotelsDetails($request, $hotelCart->HotelID, "hotelTbo", "rates");
 
+            // return $hotelRoom;
 
-            return $hotelRoom;
+       
+
+            
+         
 
             if ($hotelRoom["GetHotelRoomResult"]["Error"]["ErrorCode"] == 0) {
+
+                $currentRoomRatePlan = $hotelCart->hotelRatesRequest->RatePlanCode;
+
+                $filteredHotel = array_values(Arr::where($hotelRoom["GetHotelRoomResult"]['HotelRoomsDetails'], function ($value, $key) use ($currentRoomRatePlan) {
+                    return $value["RatePlanCode"] == $currentRoomRatePlan;
+                }));
+
+                if(count($filteredHotel)==0){
+                    $hotelRoomAvailablility=$hotelRoom["GetHotelRoomResult"]['HotelRoomsDetails'][0];
+
+                    $hotelCart->hotelRatesRequest=$hotelRoomAvailablility;
+                    
+                    return $hotelCart;
+                    // return json_decode($hotelCart);
+                }
+
                 return response()->json([
                     'status' => 200,
                     'message' => "Rates fetching successfully"
@@ -173,8 +196,12 @@ class TBOController extends Controller
                 $hotelResults = $getResults['HotelSearchResult']['HotelResults'];
 
                 $filteredHotel = array_values(Arr::where($hotelResults, function ($value, $key) use ($id) {
-                    return $value["HotelCode"] === $id;
+                    return $value["HotelCode"] == $id;
                 }));
+
+
+  
+                // return $id;
 
                 if (count($filteredHotel) > 0) {
 
@@ -192,10 +219,10 @@ class TBOController extends Controller
                         //
 
                         $requestHotelInfo['EndUserIp'] = $request->ip();
-                        $requestHotelInfo['TokenId'] =  $response;
+                        $requestHotelInfo['TokenId'] = $response;
                         $requestHotelInfo['TraceId'] = $traceID;
                         $requestHotelInfo['ResultIndex'] = $filteredHotel[0]['ResultIndex'];
-                        $requestHotelInfo['HotelCode'] =  $filteredHotel[0]['HotelCode'];
+                        $requestHotelInfo['HotelCode'] = $filteredHotel[0]['HotelCode'];
 
                         $getRatesResult = Http::post('http://api.tektravels.com/BookingEngineService_Hotel/hotelservice.svc/rest/GetHotelRoom', $requestHotelInfo)->json();
 
