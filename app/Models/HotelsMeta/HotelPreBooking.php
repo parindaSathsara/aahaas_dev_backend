@@ -18,6 +18,7 @@ class HotelPreBooking extends Model
         'hotel_id',
         'bookingdataset',
         'provider',
-        'user_id'
+        'user_id',
+        'status',
     ];
 }

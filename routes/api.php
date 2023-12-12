@@ -752,7 +752,7 @@ Route::group(['middleware' => 'api'], function () {
 
     //Routes For Dashboard (Lifestyle)
     Route::get('/get_lifestyle_orders/{id}', [LifeStylesController::class, 'getLifestyleOrders']);
-    Route::get('/get_lifestyle_orders_by_checkout_id/{checkout_id}', [LifestyleController::class, 'getLifestyleOrdersByCheckoutId']);
+    Route::get('/get_lifestyle_orders_by_checkout_id/{checkout_id}', [LifeStylesController::class, 'getLifestyleOrdersByCheckoutId']);
 
 
 
@@ -765,6 +765,15 @@ Route::group(['middleware' => 'api'], function () {
     Route::post('/hotelBlockRoom', [TBOController::class, 'hotelBlockRoom']);
     Route::post('/get_hotel_details/{id}/{provider}/{status}', [TBOController::class, 'hotelsDetails']);
     Route::post('/reValidate_cart_hotel_before_booking', [TBOController::class, 'reValidateCartHotelBeforeBooking']);
-
     Route::post('/add_hotel_to_cart', [HotelsBooking::class, 'hotelsPreBooking']);
+    Route::post('/revalidate_on_checkout', [TBOController::class, 'revalidateWhenCheckout']);
+    Route::post('/hotel_tbo_booking', [TBOController::class, 'hotelBooking']);
+
+    Route::post('/search_tbo_hotels', [TBOController::class, 'searchHotels']);
+
+
+
+    //-------------------Hotel_Ahs
+    Route::post('/get_hotel_rates/{id}', [TBOController::class, 'getHotelRates']);
+    Route::post('/update_hotel_status_cart', [TBOController::class, 'updateHotelStatusCart']);
 });
