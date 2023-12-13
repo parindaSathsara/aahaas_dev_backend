@@ -398,8 +398,6 @@ class TBOController extends Controller
 
         $hotelPreBookingDataSet = json_decode($hotelPreBooking->bookingdataset);
 
-
-
         MainCheckout::create([
             'checkout_id' => $oid,
             'essnoness_id' => null,

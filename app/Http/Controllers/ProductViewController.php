@@ -71,7 +71,7 @@ class ProductViewController extends Controller
             ]);
         }
     }
-    
+
     /* Get Product Data By Id funcrion Ending */
 
     /* Sql query to group by variation type 1 funcrion starting */
@@ -134,7 +134,7 @@ class ProductViewController extends Controller
             $cityName = $request->input('cityName');
             $date = $request->input('date');
 
-            $deliveryURL = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=" . $request->input('latLonMain') . "&destinations=" . $request->input('latLonSecondary') . "&key=AIzaSyDMlecBhMzqL5tXiuWOS4hqFCWcZkP7OMo";
+            $deliveryURL = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=" . $request->input('latLonMain') . "&destinations=" . $request->input('latLonSecondary') . "&key=AIzaSyBzbXRQhPopiK0CjXVhdnS7FOtQDpJxTpY";
             $response_1 = Http::get($deliveryURL)->json();
 
             $distance = $response_1['rows'][0]['elements'][0]['distance']['value'];
@@ -169,7 +169,7 @@ class ProductViewController extends Controller
                 ]);
             }
         } catch (\Exception $ex) {
-            return $ex->getMessage();
+            return "Message is" . $ex->getMessage();
         }
     }
 
