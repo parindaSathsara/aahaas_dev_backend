@@ -3,12 +3,55 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Models\FCMTokens;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class CustomerNotificationController extends Controller
 {
+
+
+
+    public function pushNotifications($token, $title, $description)
+    {
+        $firebaseToken = $token;
+
+
+        $SERVER_API_KEY = env('FCM_SERVER_KEY');
+
+        $data = [
+            "registration_ids" => $firebaseToken,
+            "notification" => [
+                "title" => $title,
+                "body" => $description,
+            ],
+            "data" => [
+                'Category' => "education",
+
+            ]
+        ];
+
+        $dataString = json_encode($data);
+
+        $headers = [
+            'Authorization: key=' . $SERVER_API_KEY,
+            'Content-Type: application/json',
+        ];
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
+
+        $response = curl_exec($ch);
+
+        return $response;
+    }
 
 
     public function getReminders($id)
@@ -81,7 +124,7 @@ class CustomerNotificationController extends Controller
                     ->where('edu_tbl_sessions.start_date', '<=', $currentTime)
                     ->where('edu_tbl_sessions.end_date', '>=', $currentTime)
                     ->where('edu_tbl_sessions.start_time', '>=', $time)
-                    ->where('edu_tbl_booking.status','Completed')
+                    ->where('edu_tbl_booking.status', 'Completed')
                     ->whereRaw("TIMEDIFF(edu_tbl_sessions.start_time,'" . $time . "')  < '00:05:00'")
                     ->select(
                         '*',
@@ -99,7 +142,7 @@ class CustomerNotificationController extends Controller
                     ->where('edu_tbl_sessions.start_date', '<=', $currentTime)
                     ->where('edu_tbl_sessions.end_date', '>=', $currentTime)
                     ->where('edu_tbl_sessions.start_time', '>=', $time)
-                    ->where('edu_tbl_booking.status','Completed')
+                    ->where('edu_tbl_booking.status', 'Completed')
                     ->whereRaw("TIMEDIFF(edu_tbl_sessions.start_time,'" . $time . "')  < '00:15:00'")
                     ->select(
                         '*',
@@ -209,6 +252,75 @@ class CustomerNotificationController extends Controller
             ]);
         }
     }
+
+
+    public function getUserUpcomingEducationSessions($id)
+    {
+        $user_id = $id;
+        $currentTime = \Carbon\Carbon::now('Asia/Kolkata')->format('Y-m-d');
+
+        $time = \Carbon\Carbon::now('Asia/Kolkata')->toTimeString();
+
+        try {
+
+            if ($id == "all") {
+                $education_data = DB::table('edu_tbl_booking')
+                    ->join('edu_tbl_inventory', 'edu_tbl_booking.session_id', '=', 'edu_tbl_inventory.id')
+                    ->join('edu_tbl_sessions', 'edu_tbl_inventory.id', '=', 'edu_tbl_sessions.inventory_id')
+                    ->join('edu_tbl_education', 'edu_tbl_inventory.edu_id', '=', 'edu_tbl_education.education_id')
+                    ->join('user_fcm_tokens', 'edu_tbl_booking.user_id', '=', 'user_fcm_tokens.user_id')
+                    ->select("user_fcm_tokens.token", "edu_tbl_education.course_name", "edu_tbl_sessions.start_time")
+                    ->where('edu_tbl_sessions.start_date', '<=', $currentTime)
+                    ->where('edu_tbl_sessions.end_date', '>=', $currentTime)
+                    ->where('edu_tbl_booking.status', 'Completed')
+                    ->where('edu_tbl_sessions.start_time', '>=', $time)
+                    ->whereRaw("TIMEDIFF(edu_tbl_sessions.start_time,'" . $time . "')  < '00:15:00'")
+                    ->get();
+
+
+                foreach ($education_data as $education) {
+                    $description = "You have an education session at " . $education->start_time;
+                    $pushResponse[] = $this->pushNotifications([$education->token], $education->course_name, $description);
+                }
+
+
+
+                return response()->json([
+                    'status' => 200,
+                    'education' => $education_data,
+                    // 'education_next_date' => $daySchedule[0]
+                ]);
+            } else {
+                $education_data = DB::table('edu_tbl_booking')
+                    ->where('edu_tbl_booking.user_id', $user_id)
+                    ->join('edu_tbl_inventory', 'edu_tbl_booking.session_id', '=', 'edu_tbl_inventory.id')
+                    ->join('edu_tbl_sessions', 'edu_tbl_inventory.id', '=', 'edu_tbl_sessions.inventory_id')
+                    ->join('edu_tbl_education', 'edu_tbl_inventory.edu_id', '=', 'edu_tbl_education.education_id')
+
+
+                    ->where('edu_tbl_sessions.start_date', '<=', $currentTime)
+                    ->where('edu_tbl_sessions.end_date', '>=', $currentTime)
+                    ->where('edu_tbl_booking.status', 'Completed')
+                    ->where('edu_tbl_sessions.start_time', '>=', $time)
+
+                    ->whereRaw("TIMEDIFF(edu_tbl_sessions.start_time,'" . $time . "')  < '00:15:00'")
+
+                    ->get();
+
+                return response()->json([
+                    'status' => 200,
+                    'education' => $education_data,
+                    // 'education_next_date' => $daySchedule[0]
+                ]);
+            }
+        } catch (\Exception $exception) {
+            return response()->json([
+                'status' => 400,
+                'error_message' => throw $exception
+            ]);
+        }
+    }
+
 
 
     public function fetchEducationNotifications($id)

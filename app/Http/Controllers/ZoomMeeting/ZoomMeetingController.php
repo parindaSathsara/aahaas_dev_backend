@@ -56,19 +56,8 @@ class ZoomMeetingController extends Controller
             ];
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
         $data = $validator->validated();
+
 
         $path = 'users/me/meetings';
         $response = $this->zoomPost($path, [
@@ -88,10 +77,15 @@ class ZoomMeetingController extends Controller
             ]
         ]);
 
+
+
+        return $response;
+
         $response_final = json_decode($response->body(), true);
 
-        // return $response_final;
 
+
+        // return $response_final;
         $uuid = $response_final['uuid'];
         $meeting_id = $response_final['id'];
         $host_id = $response_final['host_id'];
@@ -110,6 +104,7 @@ class ZoomMeetingController extends Controller
         $created_at = $currentTime;
         $updated_at = $currentTime;
         $updated_by = 'user@gmail.com';
+
 
         EducationMeeting::create([
             'uuid' => $uuid,

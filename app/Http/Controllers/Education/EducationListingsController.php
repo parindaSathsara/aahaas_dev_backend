@@ -384,98 +384,6 @@ class EducationListingsController extends Controller
 
 
 
-    public function getUserUpcomingEducationSessions($id)
-    {
-        $user_id = $id;
-        $currentTime = \Carbon\Carbon::now('Asia/Kolkata')->format('Y-m-d');
-
-        $time = \Carbon\Carbon::now('Asia/Kolkata')->toTimeString();
-
-        // $currentDate = \Carbon\Carbon::now('Asia/Kolkata')->toDateString();
-        // $currentDate = '2022-11-21';
-
-        try {
-            //------------------------------------------------------------------------------------------------------------------
-            $education_data = DB::table('edu_tbl_booking')
-                ->join('edu_tbl_sessions', 'edu_tbl_booking.session_id', '=', 'edu_tbl_sessions.session_id')
-                ->join('edu_tbl_education', 'edu_tbl_sessions.education_id', '=', 'edu_tbl_education.education_id')
-
-                ->select(
-                    'edu_tbl_sessions.start_date',
-                    'edu_tbl_sessions.end_date',
-                    'edu_tbl_sessions.day',
-                )
-                ->get();
-
-            // return $education_data;
-
-            $daySchedule = [];
-            foreach ($education_data as $val) {
-                if ($val->day == "Monday") {
-                    $startDate = Carbon::parse($val->start_date)->subDays(1)->next(Carbon::MONDAY);
-                } else if ($val->day == "Tuesday") {
-                    $startDate = Carbon::parse($val->start_date)->subDays(1)->next(Carbon::TUESDAY);
-                } else if ($val->day == "Wednesday") {
-                    $startDate = Carbon::parse($val->start_date)->subDays(1)->next(Carbon::WEDNESDAY);
-                } else if ($val->day == "Thursday") {
-                    $startDate = Carbon::parse($val->start_date)->subDays(1)->next(Carbon::THURSDAY);
-                } else if ($val->day == "Friday") {
-                    $startDate = Carbon::parse($val->start_date)->subDays(1)->next(Carbon::FRIDAY);
-                } else if ($val->day == "Saturday") {
-                    $startDate = Carbon::parse($val->start_date)->subDays(1)->next(Carbon::SATURDAY);
-                } else {
-                    $startDate = Carbon::parse($val->start_date)->subDays(1)->next(Carbon::SUNDAY);
-                }
-
-                $endDate = Carbon::parse($val->end_date);
-
-                for ($date = $startDate; $date->lte($endDate); $date->addWeek()) {
-
-
-                    $daySchedule[] = $date->format('Y-m-d');
-                }
-            }
-
-            // return $currentDate;
-
-            //------------------------------------------------------------------------------------------------------------------
-            if (in_array($currentTime, $daySchedule)) {
-                $education_data = DB::table('edu_tbl_booking')
-                    ->join('edu_tbl_sessions', 'edu_tbl_booking.session_id', '=', 'edu_tbl_sessions.session_id')
-                    ->join('edu_tbl_education', 'edu_tbl_sessions.education_id', '=', 'edu_tbl_education.education_id')
-
-                    ->where('edu_tbl_booking.user_id', $user_id)
-                    ->where('edu_tbl_sessions.start_date', '<=', $currentTime)
-                    ->where('edu_tbl_sessions.end_date', '>=', $currentTime)
-                    ->where('edu_tbl_booking.status', 'Completed')
-                    // ->where('edu_tbl_sessions.start_time', '>=', $time)
-                    // ->whereRaw("TIMEDIFF(edu_tbl_sessions.start_time,'" . $time . "')  < '00:05:00'")
-
-                    ->select(
-                        '*',
-                        // DB::raw("TIMEDIFF(edu_tbl_sessions.start_time,'" . $time . "')")
-                    )
-                    ->get();
-
-                return response()->json([
-                    'status' => 200,
-                    'education' => $education_data,
-                    'education_next_date' => $daySchedule[0]
-                ]);
-            } else {
-                return response()->json([
-                    'status' => 250,
-                    'education' => "No Educations"
-
-                ]);
-            }
-        } catch (\Exception $exception) {
-            return response()->json([
-                'status' => 400,
-                'error_message' => throw $exception
-            ]);
-        }
-    }
 
 
 
@@ -623,16 +531,19 @@ class EducationListingsController extends Controller
                 ->where('edu_tbl_education.education_id', $id)
                 ->get();
 
-            $educationDates = DB::table('edu_tbl_sessions')
-                ->select('edu_tbl_sessions.start_date')
-                ->where('edu_tbl_sessions.education_id', $id)
+            $educationDates = DB::table('edu_tbl_inventory')
+                ->select('edu_tbl_inventory.course_inv_startdate', 'edu_tbl_inventory.course_startime', 'edu_tbl_inventory.course_endtime', 'edu_tbl_inventory.id')
+                ->where('edu_tbl_inventory.edu_id', $id)
                 ->get();
+
+
 
             $educationDatesList = [];
 
             foreach ($educationDates as $dates) {
-                $educationDatesList[] = $dates->start_date;
+                $educationDatesList[] = $dates->course_inv_startdate;
             }
+
 
             // $educationDiscounts = DB::table('edu_tbl_discount')
             //     ->where('edu_tbl_discount.edu_id', $id)
@@ -642,6 +553,7 @@ class EducationListingsController extends Controller
                 'status' => 200,
                 'educationDates' => $educationDatesList,
                 'educationListings' => $educationListings,
+                'educationInventory' => $educationDates
                 // 'educationDiscounts' => $educationDiscounts
             ]);
         } catch (\Exception $exception) {

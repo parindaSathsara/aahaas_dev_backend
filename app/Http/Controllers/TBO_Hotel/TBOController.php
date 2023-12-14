@@ -23,6 +23,44 @@ class TBOController extends Controller
 {
 
 
+    public function groupRates()
+    {
+        $lifestylesDataSet =  DB::table("tbl_lifestyle_rates")->where("tbl_lifestyle_rates.lifestyle_id", 330)
+            ->join("tbl_lifestyle_inventory", "tbl_lifestyle_rates.lifestyle_inventory_id", "tbl_lifestyle_inventory.lifestyle_inventory_id")
+            ->select(DB::raw("COUNT(*) as LsCount"), 'tbl_lifestyle_rates.lifestyle_inventory_id')
+            ->groupBy("tbl_lifestyle_rates.booking_start_date", "tbl_lifestyle_rates.booking_end_date", "tbl_lifestyle_rates.travel_start_date", "tbl_lifestyle_rates.travel_end_date", "tbl_lifestyle_rates.adult_rate", "tbl_lifestyle_rates.currency", "tbl_lifestyle_rates.child_rate", "tbl_lifestyle_rates.child_age", "tbl_lifestyle_rates.cnb_age")
+            ->get();
+
+
+
+        foreach ($lifestylesDataSet as $key => $lsDataSetVal) {
+            $lsCount = $lsDataSetVal->LsCount;
+            $lsInvenStart = $lsDataSetVal->lifestyle_inventory_id;
+            $lsInvenLast = $lsDataSetVal->lifestyle_inventory_id + $lsCount;
+
+            for ($i = $lsInvenStart; $i < $lsInvenLast; $i++) {
+                $dataInvenId[$key][] = $i;
+            }
+
+            $cityCount = DB::table("tbl_lifestyle_inventory")
+                ->whereIn("tbl_lifestyle_inventory.lifestyle_inventory_id", $dataInvenId[$key])
+                ->groupBy("pickup_location")
+                ->get();
+
+            $timeSlotCount = DB::table("tbl_lifestyle_inventory")
+                ->whereIn("tbl_lifestyle_inventory.lifestyle_inventory_id", $dataInvenId[$key])
+                ->groupBy("pickup_time")
+                ->get();
+
+            $cityCount = count($cityCount);
+            $timeSlotCount = count($timeSlotCount);
+
+            return DB::table("tbl_lifestyle_inventory")->whereIn("tbl_lifestyle_inventory.lifestyle_inventory_id", $dataInvenId[$key])->update(['additional_data1' => $key, 'additional_data2' => $timeSlotCount . "," . $cityCount]);
+        }
+
+        // return $dataInvenId;
+    }
+
 
 
     public function generateTBOToken(Request $request)
@@ -270,7 +308,6 @@ class TBOController extends Controller
         ];
 
         $CityList = Http::post('http://api.tektravels.com/SharedServices/StaticData.svc/rest/GetDestinationSearchStaticData', $requestedDataSet)->json();
-
 
         if ($CityList["Error"]["ErrorMessage"] == "") {
             $filteredCity = array_values(Arr::where($CityList["Destinations"], function ($value, $key) use ($city) {

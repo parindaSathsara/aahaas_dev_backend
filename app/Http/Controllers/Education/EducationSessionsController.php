@@ -141,60 +141,14 @@ class EducationSessionsController extends Controller
 
     public function getTimeSlotsBySession(Request $request)
     {
+        $inventory_id = $request->input('inventory_id');
 
-
-        $session_id = $request->input('session_id');
-
-        $educationSessions = EducationSessions::where('session_id', $session_id)
-            // ->where('education_id', $eduicationID)
+        $educationSessions = EducationSessions::where('inventory_id', $inventory_id)
             ->get();
-
-        $daySchedule = [];
-        foreach ($educationSessions as $val) {
-            if ($val['day'] == "Monday") {
-                $startDate = Carbon::parse($val['start_date'])->subDays(1)->next(Carbon::MONDAY);
-            } else if ($val['day'] == "Tuesday") {
-                $startDate = Carbon::parse($val['start_date'])->subDays(1)->next(Carbon::TUESDAY);
-            } else if ($val['day'] == "Wednesday") {
-                $startDate = Carbon::parse($val['start_date'])->subDays(1)->next(Carbon::WEDNESDAY);
-            } else if ($val['day'] == "Thursday") {
-                $startDate = Carbon::parse($val['start_date'])->subDays(1)->next(Carbon::THURSDAY);
-            } else if ($val['day'] == "Friday") {
-                $startDate = Carbon::parse($val['start_date'])->subDays(1)->next(Carbon::FRIDAY);
-            } else if ($val['day'] == "Saturday") {
-                $startDate = Carbon::parse($val['start_date'])->subDays(1)->next(Carbon::SATURDAY);
-            } else {
-                $startDate = Carbon::parse($val['start_date'])->subDays(1)->next(Carbon::SUNDAY);
-            }
-
-            $endDate = Carbon::parse($val['end_date']);
-
-            for ($date = $startDate; $date->lte($endDate); $date->addWeek()) {
-
-                // $mondays=[
-                //     'dates'=>$date->format('Y-m-d'),
-                //     'day'=>Carbon::parse($date->format('Y-m-d'))->dayName
-                // ];
-
-                $daySchedule[] = [
-                    'date' => $date->format('Y-m-d'),
-                    'day' => Carbon::parse($date->format('Y-m-d'))->dayName,
-                    'session' => $val['sesssion'],
-                    'start_time' => $val['start_time'],
-                    'end_time' => $val['end_time'],
-                    'education_id' => $val['education_id'],
-                    'start_date' => $val['start_date'],
-                    'end_date' => $val['end_date'],
-                ];
-            }
-        }
-
-
-
         return response()->json([
             'status' => 200,
             // 'education_sessions' => $educationSessions,
-            'classSchedule' => $daySchedule
+            'classSchedule' => $educationSessions
         ]);
     }
 

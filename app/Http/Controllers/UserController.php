@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FCMTokens;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
@@ -56,7 +57,7 @@ class UserController extends Controller
 
             return response()->json([
                 'status' => 200,
-                'userData'=>$userById,
+                'userData' => $userById,
                 'user_id' => $userById->id,
                 'username' => $userById->username,
                 'user_role' => $userById->user_role,
@@ -126,6 +127,31 @@ class UserController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'User Removed from the System Successfully'
+            ]);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'status' => 401,
+                'message' => throw $exception
+            ]);
+        }
+    }
+
+
+    public function saveFCMTokens(Request $request)
+    {
+
+        try {
+
+            $fcmcount = FCMTokens::where('user_id', $request->user_id)->where('token', $request->token_id)->get();
+
+            if (count($fcmcount) == 0) {
+                FCMTokens::create(['user_id' => $request->user_id, 'token' => $request->token_id]);
+            }
+
+
+            return response()->json([
+                'status' => 200,
+                'message' => "success"
             ]);
         } catch (\Exception $exception) {
             return response()->json([

@@ -629,10 +629,13 @@ Route::group(['middleware' => 'api'], function () {
     Route::get('/get-ess-notifications/{id}/{catID}', [CustomerNotificationController::class, 'fetchEssentialsNotifications']);
     Route::get('/get-ls-notifications/{id}', [CustomerNotificationController::class, 'fetchLifeStyleNotifications']);
     Route::get('/get-edu-notifications/{id}', [CustomerNotificationController::class, 'fetchEducationNotifications']);
-    Route::get('/get-upcoming-education-sessions/{id}', [EducationListingsController::class, 'getUserUpcomingEducationSessions']);
+    Route::get('/get-upcoming-education-sessions/{id}', [CustomerNotificationController::class, 'getUserUpcomingEducationSessions']);
 
     Route::get('/get-reminders/{id}', [CustomerNotificationController::class, 'getReminders']);
     Route::get('/get-hotels-notifications/{id}', [CustomerNotificationController::class, 'fetchHotelsNotifications']);
+
+
+    Route::get('/push_notification/{id}', [CustomerNotificationController::class, 'pushNotifications']);
     // Route::get('/get-hotel-orders/{id}', [CustomerOrdersController::class, 'fetchHotelCusId']);
 
     // **** ///////////////////////////////////////////////////////////////////////////////////////////// **** //
@@ -776,4 +779,13 @@ Route::group(['middleware' => 'api'], function () {
     //-------------------Hotel_Ahs
     Route::post('/get_hotel_rates/{id}', [TBOController::class, 'getHotelRates']);
     Route::post('/update_hotel_status_cart', [TBOController::class, 'updateHotelStatusCart']);
+
+    Route::get('/groupRatesLifestyles', [TBOController::class, 'groupRates']);
+
+
+
+
+    //--------------------------FirebaseFCM
+
+    Route::post('/save_fcm_tokens', [UserController::class, 'saveFCMTokens']);
 });
