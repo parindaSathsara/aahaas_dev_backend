@@ -34,7 +34,9 @@ class HotelsBooking extends Controller
             'cart_id' => $hotelBlockingDataSetDecoded->cart_id,
             'listing_pre_id' => '',
             'lifestyle_pre_id' => '',
+
             'hotels_pre_id' => $hotelPreBooking->id,
+
             'cart_status' => 'InCart',
             'cart_added_date' => $currentTime,
             'customer_id' => $hotelBlockingDataSetDecoded->user_id,

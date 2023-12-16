@@ -436,7 +436,6 @@ class CustomerOrdersController extends Controller
                 throw $ex;
             }
         }
-
     }
 
     public function getDetailsByOrderId($id)
@@ -508,7 +507,7 @@ class CustomerOrdersController extends Controller
                 ->count();
 
             $CompletedCount = DB::table('tbl_checkouts')->where('tbl_checkouts.cx_id', '=', $id)
-                ->where('tbl_checkouts.delivery_status', 'Confirmed', )
+                ->where('tbl_checkouts.delivery_status', 'Confirmed',)
                 ->count();
 
             $Products = DB::table('tbl_checkouts')->where('tbl_checkouts.cx_id', '=', $id)
