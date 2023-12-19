@@ -403,18 +403,25 @@ class EducationListingsController extends Controller
             $whereArray = [['edu_tbl_education.category1', '=', $category1]];
         }
 
+
+
+        $latestPosts = DB::table('posts')
+            ->select('user_id', DB::raw('MAX(created_at) as last_post_created_at'))
+            ->where('is_published', true)
+            ->groupBy('user_id');
+
         try {
             $educationListings = DB::table('edu_tbl_education')
-                ->join('edu_tbl_vendor', 'edu_tbl_education.vendor_id', '=', 'edu_tbl_vendor.id')
-                ->join('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')
+                // ->join('edu_tbl_vendor', 'edu_tbl_education.vendor_id', '=', 'edu_tbl_vendor.id')
+                // ->join('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')
                 ->join('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
                 ->join('edu_tbl_rate', 'edu_tbl_inventory.id', '=', 'edu_tbl_rate.edu_inventory_id')
                 ->leftJoin('edu_tbl_termscond', 'edu_tbl_education.education_id', 'edu_tbl_termscond.edu_id')
                 ->leftJoin('edu_tbl_discount', 'edu_tbl_education.education_id', '=', 'edu_tbl_discount.edu_id')
                 ->select(
                     'edu_tbl_education.*',
-                    'edu_tbl_vendor.*',
-                    'edu_tbl_details.*',
+                    // 'edu_tbl_vendor.*',
+                    // 'edu_tbl_details.*',
                     'edu_tbl_inventory.*',
                     'edu_tbl_rate.currency',
                     'edu_tbl_rate.adult_course_fee',
@@ -428,6 +435,9 @@ class EducationListingsController extends Controller
                 )
                 ->where($whereArray)
                 ->get();
+
+
+            return $educationListings;
 
             $groupType = DB::table('edu_tbl_education')
                 ->join('edu_tbl_vendor', 'edu_tbl_education.vendor_id', '=', 'edu_tbl_vendor.id')

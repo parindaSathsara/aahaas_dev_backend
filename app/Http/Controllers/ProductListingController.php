@@ -210,9 +210,9 @@ class ProductListingController extends Controller
                 'created_at' => $currentTime,
                 'updated_at' => $currentTime
             ]);
-            
 
-            
+
+
             ProductListingRates::create([
                 'inventory_id' => $listingInventory->id,
                 'active_start_date' => 'Test',
@@ -375,7 +375,8 @@ class ProductListingController extends Controller
     /* Get Data from Product Listing Function Ending */
 
 
-    public function getProductData(){
+    public function getProductData()
+    {
         ProductListing::get();
     }
 
