@@ -640,7 +640,7 @@ class TBOController extends Controller
             // return $getResults;
 
 
-            // return $getResults;
+            return $getResults;
 
             if ($getResults['HotelSearchResult']['Error']['ErrorCode'] == 0) {
                 $traceID = $getResults['HotelSearchResult']['TraceId'];

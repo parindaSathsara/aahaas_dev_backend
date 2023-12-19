@@ -37,6 +37,16 @@ class ProductReviewController extends Controller
         }
     }
 
+    public function deleteReview($id)
+    {
+        $review = ProductReview::where('id', $id)->delete();
+
+        return response([
+            'status' => 200,
+            'response' => $review
+        ]);
+    }
+
 
     //fetch all procust wise reviews
     public function fetchProducWiseReviews($id, $cat_id)

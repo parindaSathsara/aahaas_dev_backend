@@ -687,6 +687,8 @@ Route::group(['middleware' => 'api'], function () {
     Route::post('/create_new_customer_prod_review', [ProductReviewController::class, 'createNewProductReview']);
     Route::get('/get_product_wise_review/{id}/{cat_id}', [ProductReviewController::class, 'fetchProducWiseReviews']);
 
+    Route::get('/delete_review/{id}', [ProductReviewController::class, 'deleteReview']);
+
     /* -- ################################################################################################### -- */
     /* -- ################################################################################################### -- */
     /* -- ################################### ADMIN DASHBOARD ROUTES ######################################## -- */

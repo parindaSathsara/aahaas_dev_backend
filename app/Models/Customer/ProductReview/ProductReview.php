@@ -55,7 +55,7 @@ class ProductReview extends Model
 
             $prod_reviews = DB::table('product_ratings')->where(['product_id' => $id, 'category' => $cat_id])
                 ->join('tbl_customer', 'product_ratings.customer_id', '=', 'tbl_customer.customer_id')
-                ->select('*', 'product_ratings.created_at AS ReviewCreatedAt')
+                ->select('*', 'product_ratings.id AS pid',  'product_ratings.created_at AS ReviewCreatedAt')
                 ->get();
 
 
