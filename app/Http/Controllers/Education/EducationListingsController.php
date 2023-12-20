@@ -388,10 +388,12 @@ class EducationListingsController extends Controller
 
 
 
-    public function getAllEducations($category1, $category2, $category3, $category4)
+    public function getAllEducations($category1, $category2, $category3, $category4, $limit)
     {
 
         $whereArray = array();
+
+        $currentTime = \Carbon\Carbon::now('Asia/Kolkata')->toDateTimeString();
 
         if ($category1 != 0 && $category2 != 0 && $category3 != 0 && $category4 != 0) {
             $whereArray = [['edu_tbl_education.category1', '=', $category1], ['edu_tbl_education.category2', '=', $category2], ['edu_tbl_education.category3', '=', $category3], ['edu_tbl_education.category4', '=', $category4]];
@@ -403,99 +405,55 @@ class EducationListingsController extends Controller
             $whereArray = [['edu_tbl_education.category1', '=', $category1]];
         }
 
+        array_push($whereArray, ['edu_tbl_inventory.course_inv_startdate', '>=', $currentTime]);
 
-
-        $latestPosts = DB::table('posts')
-            ->select('user_id', DB::raw('MAX(created_at) as last_post_created_at'))
-            ->where('is_published', true)
-            ->groupBy('user_id');
 
         try {
             $educationListings = DB::table('edu_tbl_education')
                 // ->join('edu_tbl_vendor', 'edu_tbl_education.vendor_id', '=', 'edu_tbl_vendor.id')
-                // ->join('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')
-                ->join('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
-                ->join('edu_tbl_rate', 'edu_tbl_inventory.id', '=', 'edu_tbl_rate.edu_inventory_id')
-                ->leftJoin('edu_tbl_termscond', 'edu_tbl_education.education_id', 'edu_tbl_termscond.edu_id')
-                ->leftJoin('edu_tbl_discount', 'edu_tbl_education.education_id', '=', 'edu_tbl_discount.edu_id')
-                ->select(
-                    'edu_tbl_education.*',
-                    // 'edu_tbl_vendor.*',
-                    // 'edu_tbl_details.*',
-                    'edu_tbl_inventory.*',
-                    'edu_tbl_rate.currency',
-                    'edu_tbl_rate.adult_course_fee',
-                    'edu_tbl_rate.child_course_fee',
-                    'edu_tbl_rate.deadline_no_ofdays',
-                    'edu_tbl_rate.course_admission_deadline',
-                    'edu_tbl_rate.sale_start',
-                    'edu_tbl_termscond.cancel_deadline',
-                    'edu_tbl_discount.discount_type',
-                    'edu_tbl_discount.value'
-                )
-                ->where($whereArray)
-                ->get();
-
-
-            return $educationListings;
-
-            $groupType = DB::table('edu_tbl_education')
-                ->join('edu_tbl_vendor', 'edu_tbl_education.vendor_id', '=', 'edu_tbl_vendor.id')
                 ->join('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')
+                // ->join('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
                 ->join('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
                 ->join('edu_tbl_rate', 'edu_tbl_inventory.id', '=', 'edu_tbl_rate.edu_inventory_id')
-                ->select(
-                    'edu_tbl_education.group_type',
-                )
+                ->join('edu_tbl_termscond', 'edu_tbl_education.education_id', 'edu_tbl_termscond.edu_id')
+                ->join('edu_tbl_discount', 'edu_tbl_rate.id', '=', 'edu_tbl_discount.edu_rate_id')
+                // ->select(
+                //     'edu_tbl_education.*',
+                //     // 'edu_tbl_vendor.*',
+                //     // 'edu_tbl_details.*',
+                //     'edu_tbl_inventory.*',
+                //     'edu_tbl_rate.currency',
+                //     'edu_tbl_rate.adult_course_fee',
+                //     'edu_tbl_rate.child_course_fee',
+                //     'edu_tbl_rate.deadline_no_ofdays',
+                //     'edu_tbl_rate.course_admission_deadline',
+                //     'edu_tbl_rate.sale_start',
+                //     'edu_tbl_termscond.cancel_deadline',
+                //     'edu_tbl_discount.discount_type',
+                //     'edu_tbl_discount.value'
+                // )
+
                 ->where($whereArray)
-                ->groupBy('group_type')
+                ->groupBy('edu_tbl_inventory.edu_id')
+                ->limit($limit)
                 ->get();
 
 
-            $courseMode = DB::table('edu_tbl_education')
-                ->join('edu_tbl_vendor', 'edu_tbl_education.vendor_id', '=', 'edu_tbl_vendor.id')
-                ->join('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')
-                ->join('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
-                ->join('edu_tbl_rate', 'edu_tbl_inventory.id', '=', 'edu_tbl_rate.edu_inventory_id')
-                ->select(
-                    'edu_tbl_education.course_mode',
-                )
-                ->where($whereArray)
-                ->groupBy('course_mode')
-                ->get();
-
-            $sessionMode = DB::table('edu_tbl_education')
-                ->join('edu_tbl_vendor', 'edu_tbl_education.vendor_id', '=', 'edu_tbl_vendor.id')
-                ->join('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')
-                ->join('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
-                ->join('edu_tbl_rate', 'edu_tbl_inventory.id', '=', 'edu_tbl_rate.edu_inventory_id')
-                ->select(
-                    'edu_tbl_education.sessions',
-                )
-                ->where($whereArray)
-                ->groupBy('edu_tbl_education.sessions')
-                ->get();
-
-            $curriculumType = DB::table('edu_tbl_education')
-                ->join('edu_tbl_vendor', 'edu_tbl_education.vendor_id', '=', 'edu_tbl_vendor.id')
-                ->join('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')
-                ->join('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
-                ->join('edu_tbl_rate', 'edu_tbl_inventory.id', '=', 'edu_tbl_rate.edu_inventory_id')
-                ->select(
-                    'edu_tbl_details.curriculum',
-                )
-                ->orderBy('edu_tbl_details.curriculum', 'DESC')
-                ->where($whereArray)
-                ->groupBy('edu_tbl_details.curriculum')
-                ->get();
+            $educations = DB::table('edu_tbl_education')->join('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')->get();
+            foreach ($educations as $educationListing) {
+                $groupType[] = $educationListing->group_type;
+                $courseMode[] = $educationListing->course_mode;
+                $sessionMode[] = $educationListing->sessions;
+                $curriculumType[] = $educationListing->curriculum;
+            }
 
             return response()->json([
                 'status' => 200,
-                'educationListings' => $educationListings,
-                'groupType' => $groupType,
-                'courseMode' => $courseMode,
-                'sessionMode' => $sessionMode,
-                'curriculumType' => $curriculumType
+                'educationListings' =>  $educationListings,
+                'groupType' => array_values(array_unique($groupType)),
+                'courseMode' => array_values(array_unique($courseMode)),
+                'sessionMode' => array_values(array_unique($sessionMode)),
+                'curriculumType' => array_values(array_unique($curriculumType))
             ]);
         } catch (\Exception $exception) {
             return response()->json([
@@ -511,12 +469,13 @@ class EducationListingsController extends Controller
         try {
             $educationListings = DB::table('edu_tbl_education')
                 ->join('edu_tbl_vendor', 'edu_tbl_education.vendor_id', '=', 'edu_tbl_vendor.id')
-                ->join('edu_tbl_servicelocation', 'edu_tbl_education.vendor_id', '=', 'edu_tbl_servicelocation.edu_vendor_id')
                 ->join('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')
+                // ->join('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
                 ->join('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
-                ->join('edu_tbl_rate', 'edu_tbl_education.education_id', '=', 'edu_tbl_rate.edu_id')
-                ->join('edu_tbl_termscond', 'edu_tbl_education.education_id', '=', 'edu_tbl_termscond.edu_id')
-                ->leftJoin('edu_tbl_discount', 'edu_tbl_rate.id', '=', 'edu_tbl_discount.edu_rate_id')
+                ->join('edu_tbl_rate', 'edu_tbl_inventory.id', '=', 'edu_tbl_rate.edu_inventory_id')
+                ->join('edu_tbl_servicelocation', 'edu_tbl_rate.service_location_typeid', '=', 'edu_tbl_servicelocation.id')
+                ->join('edu_tbl_termscond', 'edu_tbl_education.education_id', 'edu_tbl_termscond.edu_id')
+                ->join('edu_tbl_discount', 'edu_tbl_rate.id', '=', 'edu_tbl_discount.edu_rate_id')
                 ->select(
                     'edu_tbl_education.*',
                     'edu_tbl_vendor.*',
@@ -539,7 +498,10 @@ class EducationListingsController extends Controller
                     'edu_tbl_termscond.*'
                 )
                 ->where('edu_tbl_education.education_id', $id)
+                ->groupBy('edu_tbl_inventory.edu_id')
                 ->get();
+
+
 
             $educationDates = DB::table('edu_tbl_inventory')
                 ->select('edu_tbl_inventory.course_inv_startdate', 'edu_tbl_inventory.course_startime', 'edu_tbl_inventory.course_endtime', 'edu_tbl_inventory.id')

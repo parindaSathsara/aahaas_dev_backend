@@ -532,7 +532,7 @@ Route::group(['middleware' => 'api'], function () {
     Route::post('/get-time-slots-by-sessionid', [EducationSessionsController::class, 'getTimeSlotsBySession']);
     // Route::get('/get-all-educations', [EducationListingsController::class, 'getAllEducations']);
 
-    Route::get('/get-all-educations/{category1}/{category2}/{category3}/{category4}', [EducationListingsController::class, 'getAllEducations']);
+    Route::get('/get-all-educations/{category1}/{category2}/{category3}/{category4}/{limit}', [EducationListingsController::class, 'getAllEducations']);
 
     Route::get('/get-all-educations-by-id/{id}', [EducationListingsController::class, 'getAllEducationsByID']);
     Route::post('/get-session-video-by-lesson-id', [EducationListingsController::class, 'getSessionVideoByLessonID']);
