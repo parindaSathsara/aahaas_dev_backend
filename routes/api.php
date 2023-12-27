@@ -86,6 +86,8 @@ use App\Models\Hotel\HotelMeta\HotelMeta;
 use App\Models\Hotels\HotelInventory;
 use App\Models\Lifestyle\LifeStyle;
 use App\Http\Controllers\HotelsMeta\HotelsBooking;
+use App\Http\Controllers\CartShareController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -790,4 +792,9 @@ Route::group(['middleware' => 'api'], function () {
     //--------------------------FirebaseFCM
 
     Route::post('/save_fcm_tokens', [UserController::class, 'saveFCMTokens']);
+
+
+     //--------------------------CartShare
+
+     Route::get('/get_cart',[CartShareController::class,'index']);
 });
