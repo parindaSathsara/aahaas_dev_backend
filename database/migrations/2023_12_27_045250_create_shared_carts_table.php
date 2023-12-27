@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->integer('cart_id');
             $table->integer('customer_id');
+            $table->string('status');
             $table->timestamps();
             $table->foreign('cart_id')->references('cart_id')->on('tbl_carts')->onUpdate('CASCADE')->onDelete('CASCADE');
         });

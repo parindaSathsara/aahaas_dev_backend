@@ -10,6 +10,7 @@ class Carts extends Model {
     protected $table = 'tbl_carts';
 
     public function sharedCart() {
-        return $this->hasMany( SharedCarts::class );
+
+        return $this->hasMany( SharedCarts::class, 'cart_id', 'cart_id' );
     }
 }
