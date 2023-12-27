@@ -133,11 +133,6 @@ class LifeStylesController extends Controller
         } else {
             $whereArray = [['tbl_lifestyle.category1', '=', $category1], ['tbl_lifestyle_inventory.inventory_date', '>=', $today_date], ['tbl_lifestyle_inventory.inventory_date', '<=', $end_day_in_two_month]];
         }
-        //'tbl_lifestyle_inventory.inventory_date', '>=', $first_date, 'tbl_lifestyle_inventory.inventory_date', '<=', $last_date
-
-        //['tbl_lifestyle_inventory.inventory_date', '>=', $today_date], ['tbl_lifestyle_inventory.inventory_date', '<=', $end_day_in_two_month]
-
-        // return "Test";
 
 
         $latitudeLongitudes = explode(',', $latlon);
@@ -153,107 +148,54 @@ class LifeStylesController extends Controller
         + sin(radians(" . $lat . ")) 
         * sin(radians(tbl_lifestyle.latitude))))";
 
+        $lifeStyles = DB::table('tbl_lifestyle')
+            ->leftJoin('tbl_lifestyle_detail', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_detail.lifestyle_id')
+            ->join('tbl_lifestyle_inventory', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_inventory.lifestyle_id')
+            ->where($whereArray)
+            ->join('tbl_lifestyle_rates', 'tbl_lifestyle_inventory.lifestyle_inventory_id', '=', 'tbl_lifestyle_rates.lifestyle_inventory_id')
 
-        if ($latlon != "\"\"") {
+            ->leftJoin('tbl_lifestyle_discount', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_discount.lifestyle_id')
+            ->select(
+                'tbl_lifestyle_rates.adult_rate AS adult_rate',
+                'tbl_lifestyle_rates.child_rate AS child_rate',
+                'tbl_lifestyle_inventory.inventory_date AS inventory_date',
+                'tbl_lifestyle.lifestyle_city',
+                'tbl_lifestyle.lifestyle_attraction_type',
+                'tbl_lifestyle.lifestyle_name',
+                'tbl_lifestyle.lifestyle_description',
+                'tbl_lifestyle.image',
+                'tbl_lifestyle.lifestyle_id',
+                'tbl_lifestyle_inventory.pickup_location',
+                // 'tbl_lifestyle_inventory.inventory_date',
+                'tbl_lifestyle_inventory.pickup_time',
 
+                'tbl_lifestyle_discount.lifestyle_inventory_id',
+                'tbl_lifestyle_discount.discount_limit',
+                'tbl_lifestyle_discount.discount_type',
+                'tbl_lifestyle_discount.offered_product',
+                'tbl_lifestyle_discount.direct',
+                'tbl_lifestyle_discount.value',
+                'tbl_lifestyle_discount.inventory_limit',
+                'tbl_lifestyle_discount.sale_start_date',
+                'tbl_lifestyle_discount.sale_end_date',
+                'tbl_lifestyle_rates.cancellation_days',
+                'tbl_lifestyle_rates.book_by_days',
+                'tbl_lifestyle_rates.booking_start_date',
+                'tbl_lifestyle_rates.payment_policy',
+                'tbl_lifestyle_rates.cancel_policy',
+                'tbl_lifestyle_rates.currency',
+                // "{$har} as Distance"
+            )
 
-            $lifeStyles = DB::table('tbl_lifestyle')
-                // ->leftJoin('tbl_lifestyle_detail', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_detail.lifestyle_id')
-                // ->join('tbl_lifestyle_inventory', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_inventory.lifestyle_id')
-                // ->join('tbl_lifestyle_rates', 'tbl_lifestyle_inventory.lifestyle_inventory_id', '=', 'tbl_lifestyle_rates.lifestyle_inventory_id')
+            ->groupBy('tbl_lifestyle_inventory.lifestyle_id')
+            ->orderBy('tbl_lifestyle_inventory.inventory_date')
 
-                // ->leftJoin('tbl_lifestyle_discount', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_discount.lifestyle_id')
-                // ->select(
-                //     DB::raw("min(tbl_lifestyle_rates.adult_rate) AS adult_rate"),
-                //     DB::raw("min(tbl_lifestyle_rates.child_rate) AS child_rate"),
-                //     DB::raw("max(tbl_lifestyle_inventory.inventory_date) AS inventory_date"),
-                //     'tbl_lifestyle.lifestyle_city',
-                //     'tbl_lifestyle.lifestyle_attraction_type',
-                //     'tbl_lifestyle.lifestyle_name',
-                //     'tbl_lifestyle.lifestyle_description',
-                //     'tbl_lifestyle.image',
-                //     'tbl_lifestyle.lifestyle_id',
-                //     'tbl_lifestyle_inventory.pickup_location',
-                //     // 'tbl_lifestyle_inventory.inventory_date',
-                //     'tbl_lifestyle_inventory.pickup_time',
-                //     'tbl_lifestyle_rates.currency',
-                //     'tbl_lifestyle_discount.lifestyle_inventory_id',
-                //     'tbl_lifestyle_discount.discount_limit',
-                //     'tbl_lifestyle_discount.discount_type',
-                //     'tbl_lifestyle_discount.offered_product',
-                //     'tbl_lifestyle_discount.direct',
-                //     'tbl_lifestyle_discount.value',
-                //     'tbl_lifestyle_discount.inventory_limit',
-                //     'tbl_lifestyle_discount.sale_start_date',
-                //     'tbl_lifestyle_discount.sale_end_date',
-                //     'tbl_lifestyle_rates.cancellation_days',
-                //     'tbl_lifestyle_rates.book_by_days',
-                //     'tbl_lifestyle_rates.booking_start_date',
-                //     'tbl_lifestyle_rates.payment_policy',
-                //     'tbl_lifestyle_rates.cancel_policy',
-                //     'tbl_lifestyle_rates.currency',
-                //     // "{$har} as Distance"
-                // )
-                // ->groupBy('tbl_lifestyle_inventory.lifestyle_id')
-                // ->orderBy('tbl_lifestyle_inventory.inventory_date')
-                // ->where($whereArray)
-                // ->selectRaw("{$har} AS distance")
-                // ->whereRaw("{$har} < ?", [$rad])
-                ->limit($limit)
-
-                // ->selectRaw("{$distance} AS distance")
-                // ->whereRaw("{$distance} < ?", [$rad])
-                ->get();
-        } else {
-            $lifeStyles = DB::table('tbl_lifestyle')
-                // ->leftJoin('tbl_lifestyle_detail', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_detail.lifestyle_id')
-                // ->join('tbl_lifestyle_inventory', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_inventory.lifestyle_id')
-                // ->join('tbl_lifestyle_rates', 'tbl_lifestyle_inventory.lifestyle_inventory_id', '=', 'tbl_lifestyle_rates.lifestyle_inventory_id')
-
-                // ->leftJoin('tbl_lifestyle_discount', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_discount.lifestyle_id')
-                // ->select(
-                //     DB::raw("min(tbl_lifestyle_rates.adult_rate) AS adult_rate"),
-                //     DB::raw("min(tbl_lifestyle_rates.child_rate) AS child_rate"),
-                //     DB::raw("max(tbl_lifestyle_inventory.inventory_date) AS inventory_date"),
-                //     'tbl_lifestyle.lifestyle_city',
-                //     'tbl_lifestyle.lifestyle_attraction_type',
-                //     'tbl_lifestyle.lifestyle_name',
-                //     'tbl_lifestyle.lifestyle_description',
-                //     'tbl_lifestyle.image',
-                //     'tbl_lifestyle.lifestyle_id',
-                //     'tbl_lifestyle_inventory.pickup_location',
-                //     // 'tbl_lifestyle_inventory.inventory_date',
-                //     'tbl_lifestyle_inventory.pickup_time',
-                //     'tbl_lifestyle_rates.currency',
-                //     'tbl_lifestyle_discount.lifestyle_inventory_id',
-                //     'tbl_lifestyle_discount.discount_limit',
-                //     'tbl_lifestyle_discount.discount_type',
-                //     'tbl_lifestyle_discount.offered_product',
-                //     'tbl_lifestyle_discount.direct',
-                //     'tbl_lifestyle_discount.value',
-                //     'tbl_lifestyle_discount.inventory_limit',
-                //     'tbl_lifestyle_discount.sale_start_date',
-                //     'tbl_lifestyle_discount.sale_end_date',
-                //     'tbl_lifestyle_rates.cancellation_days',
-                //     'tbl_lifestyle_rates.book_by_days',
-                //     'tbl_lifestyle_rates.booking_start_date',
-                //     'tbl_lifestyle_rates.payment_policy',
-                //     'tbl_lifestyle_rates.cancel_policy',
-                //     'tbl_lifestyle_rates.currency',
-                //     // "{$har} as Distance"
-                // )
-
-                // ->groupBy('tbl_lifestyle_inventory.lifestyle_id')
-                // ->orderBy('tbl_lifestyle_inventory.inventory_date')
-                // ->where($whereArray)
-                // ->selectRaw("{$har} AS distance")
-                // ->whereRaw("{$har} < ?", [$rad])
-                ->limit($limit)
-
-                // ->selectRaw("{$distance} AS distance")
-                // ->whereRaw("{$distance} < ?", [$rad])
-                ->get();
-        }
+            ->selectRaw("{$har} AS distance")
+            ->whereRaw("{$har} < ?", [$rad])
+            ->limit($limit)
+            // ->selectRaw("{$distance} AS distance")
+            // ->whereRaw("{$distance} < ?", [$rad])
+            ->get();
 
         return response()->json([
             'status' => 200,
