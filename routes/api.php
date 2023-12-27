@@ -796,5 +796,8 @@ Route::group(['middleware' => 'api'], function () {
 
      //--------------------------CartShare
 
-     Route::get('/get_cart',[CartShareController::class,'index']);
+     Route::post('/share_cart/{cart_id}',[CartShareController::class,'share_cart']);
+     Route::get('/get_shared_carts/{user_id}',[CartShareController::class,'get_shared_carts']);
+
+
 });
