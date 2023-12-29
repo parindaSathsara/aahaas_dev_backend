@@ -798,8 +798,7 @@ Route::group(['middleware' => 'api'], function () {
 
      Route::post('/share_cart/{cart_id}',[CartShareController::class,'share_cart']);
 
-     Route::get('/get_shared_carts_by_user/{user_id}',[CartShareController::class,'get_shared_carts']);
-     Route::get('/get_pending_carts_by_user/{user_id}',[CartShareController::class,'get_pending_carts']);
+     Route::get('/get_incoming_carts_by_user/{user_id}/{type}',[CartShareController::class,'get_incoming_carts']);
 
      Route::post('/accept_cart/{shared_id}',[CartShareController::class,'accept_cart']);
      Route::post('/decline_cart/{shared_id}',[CartShareController::class,'decline_cart']);

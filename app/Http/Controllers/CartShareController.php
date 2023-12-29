@@ -49,16 +49,19 @@ class CartShareController extends Controller {
         return response()->json( [ 'status'=>'success', 'messege'=>'Cart is decline' ] );
     }
 
-    public function get_pending_carts( $user_id ) {
+    public function get_incoming_carts( $user_id, $type ) {
 
-        $carts = SharedCarts::with( 'cart' )->where( 'customer_id', $user_id )->where( 'status', 'Pending' )->get();
-
-        return response()->json( [ 'status'=>'success', 'messege'=>'Success', 'data'=>$carts ] );
-    }
-
-    public function get_shared_carts( $user_id ) {
-
-        $carts = SharedCarts::with( 'cart' )->where( 'customer_id', $user_id )->where( 'status', 'Shared' )->get();
+        $carts = SharedCarts::select(
+            'tbl_carts.cart_id',
+            'shared_carts.id as shared_cart_id',
+            'tbl_carts.cart_title',
+            'users.email as shared_email',
+        )
+        ->join( 'tbl_carts', 'tbl_carts.cart_id', '=', 'shared_carts.cart_id' )
+        ->join( 'users', 'users.id', '=', 'tbl_carts.customer_id' )
+        ->where( 'shared_carts.customer_id', $user_id )
+        ->where( 'shared_carts.status', $type )
+        ->get();
 
         return response()->json( [ 'status'=>'success', 'messege'=>'Success', 'data'=>$carts ] );
     }
