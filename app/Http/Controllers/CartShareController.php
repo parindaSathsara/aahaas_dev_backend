@@ -42,12 +42,12 @@ class CartShareController extends Controller {
         return response()->json( [ 'status'=>'success', 'messege'=>'Cart is accepted' ] );
     }
 
-    // public function decline_cart ( $shared_id ) {
+    public function decline_cart ( $shared_id ) {
 
-    //     SharedCarts::where( 'id', $shared_id )->where( 'status', 'Pending' )->delete();
+        SharedCarts::where( 'id', $shared_id )->where( 'status', 'Pending' )->delete();
 
-    //     return response()->json( [ 'status'=>'success', 'messege'=>'Cart is decline' ] );
-    // }
+        return response()->json( [ 'status'=>'success', 'messege'=>'Cart is decline' ] );
+    }
 
     public function get_pending_carts( $user_id ) {
 
@@ -65,22 +65,56 @@ class CartShareController extends Controller {
 
     public function get_self_shared_carts( $auth_user_id ) {
 
-        $data = [];
-        $carts = Carts::where( 'customer_id', $auth_user_id )->get();
+        $carts = Carts::select(
+            'tbl_carts.cart_id',
+            'shared_carts.id as shared_cart_id',
+            'tbl_carts.cart_title',
+            'users.email as shared_email',
+        )
+        ->join( 'shared_carts', 'shared_carts.cart_id', '=', 'tbl_carts.cart_id' )
+        ->join( 'users', 'users.id', '=', 'shared_carts.customer_id' )
+        ->where( 'tbl_carts.customer_id', $auth_user_id )
+        ->where( 'shared_carts.status', 'Shared' )
+        ->get();
 
-        foreach ( $carts as $cart ) {
-            $share_carts = SharedCarts::select( 'shared_carts.*', 'users.email' )->where( 'cart_id', $cart->cart_id )->join( 'users', 'users.id', '=', 'shared_carts.customer_id' )->get();
-            $share_carts_array = [];
-            foreach ( $share_carts as $item ) {
-                $share_carts_array [] = $item;
-            }
-            $cart[ 'shared_carts' ] = $share_carts_array;
-            array_push( $data, $cart );
-        }
-
-        return response()->json( [ 'status'=>'success', 'messege'=>'Success', 'data'=>$data ] );
-
+        return response()->json( [ 'status'=>'success', 'messege'=>'Success', 'data'=>$carts ] );
     }
+
+    public function get_self_pending_carts( $auth_user_id ) {
+
+        $carts = Carts::select(
+            'tbl_carts.cart_id',
+            'shared_carts.id as shared_cart_id',
+            'tbl_carts.cart_title',
+            'users.email as shared_email',
+        )
+        ->join( 'shared_carts', 'shared_carts.cart_id', '=', 'tbl_carts.cart_id' )
+        ->join( 'users', 'users.id', '=', 'shared_carts.customer_id' )
+        ->where( 'tbl_carts.customer_id', $auth_user_id )
+        ->where( 'shared_carts.status', 'Pending' )
+        ->get();
+
+        return response()->json( [ 'status'=>'success', 'messege'=>'Success', 'data'=>$carts ] );
+    }
+
+    // public function get_self_shared_carts( $auth_user_id ) {
+
+    //     $data = [];
+    //     $carts = Carts::where( 'customer_id', $auth_user_id )->get();
+
+    //     foreach ( $carts as $cart ) {
+    //         $share_carts = SharedCarts::select( 'shared_carts.*', 'users.email' )->where( 'cart_id', $cart->cart_id )->join( 'users', 'users.id', '=', 'shared_carts.customer_id' )->get();
+    //         $share_carts_array = [];
+    //         foreach ( $share_carts as $item ) {
+    //             $share_carts_array [] = $item;
+    //         }
+    //         $cart[ 'shared_carts' ] = $share_carts_array;
+    //         array_push( $data, $cart );
+    //     }
+
+    //     return response()->json( [ 'status'=>'success', 'messege'=>'Success', 'data'=>$data ] );
+
+    // }
 
     public function cancel_cart_request( $shared_id ) {
         SharedCarts::where( 'id', $shared_id )->where( 'status', 'Pending' )->delete();
