@@ -68,7 +68,7 @@ class CustomerController extends Controller
                 if ($request->hasFile('userImage')) {
                     $file = $request->file('userImage');
                     $fileExtension = $file->getClientOriginalExtension();
-                    $fileName = $request->input('customername') . rand(20000, 50000) . '.' . $fileExtension;
+                    $fileName = $request->input('customername') . rand(1999999, 9999999) . '.' . $fileExtension;
                     $file->move('uploads/customer_images/', $fileName);
                     $customerImage = 'uploads/customer_images/' . $fileName;
 
