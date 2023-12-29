@@ -42,32 +42,45 @@ class CartShareController extends Controller {
         return response()->json( [ 'status'=>'success', 'messege'=>'Cart is accepted' ] );
     }
 
-    // public function decline_cart ( $shared_id ) {
+    public function decline_cart ( $shared_id ) {
 
-    //     SharedCarts::where( 'id', $shared_id )->where( 'status', 'Pending' )->delete();
+        SharedCarts::where( 'id', $shared_id )->where( 'status', 'Pending' )->delete();
 
-    //     return response()->json( [ 'status'=>'success', 'messege'=>'Cart is decline' ] );
-    // }
+        return response()->json( [ 'status'=>'success', 'messege'=>'Cart is decline' ] );
+    }
 
-    public function get_pending_carts( $user_id ) {
+    public function get_incoming_carts( $user_id, $type ) {
 
-        $carts = SharedCarts::with( 'cart' )->where( 'customer_id', $user_id )->where( 'status', 'Pending' )->get();
+        $carts = SharedCarts::select(
+            'tbl_carts.cart_id',
+            'shared_carts.id as shared_cart_id',
+            'tbl_carts.cart_title',
+            'users.email as shared_email',
+        )
+        ->join( 'tbl_carts', 'tbl_carts.cart_id', '=', 'shared_carts.cart_id' )
+        ->join( 'users', 'users.id', '=', 'tbl_carts.customer_id' )
+        ->where( 'shared_carts.customer_id', $user_id )
+        ->where( 'shared_carts.status', $type )
+        ->get();
 
         return response()->json( [ 'status'=>'success', 'messege'=>'Success', 'data'=>$carts ] );
     }
 
-    public function get_shared_carts( $user_id ) {
+    public function get_self_sharing_carts( $auth_user_id, $type ) {
 
-        $carts = SharedCarts::with( 'cart' )->where( 'customer_id', $user_id )->where( 'status', 'Shared' )->get();
+        $carts = Carts::select(
+            'tbl_carts.cart_id',
+            'shared_carts.id as shared_cart_id',
+            'tbl_carts.cart_title',
+            'users.email as shared_email',
+        )
+        ->join( 'shared_carts', 'shared_carts.cart_id', '=', 'tbl_carts.cart_id' )
+        ->join( 'users', 'users.id', '=', 'shared_carts.customer_id' )
+        ->where( 'tbl_carts.customer_id', $auth_user_id )
+        ->where( 'shared_carts.status', $type )
+        ->get();
 
         return response()->json( [ 'status'=>'success', 'messege'=>'Success', 'data'=>$carts ] );
-    }
-
-    public function get_self_shared_carts( $auth_user_id ) {
-
-        $carts = Carts::with( 'sharedCart' )->where( 'customer_id', $auth_user_id )->get();
-        return response()->json( [ 'status'=>'success', 'messege'=>'Success', 'data'=>$carts ] );
-
     }
 
     public function cancel_cart_request( $shared_id ) {
@@ -75,7 +88,7 @@ class CartShareController extends Controller {
         return response()->json( [ 'status'=>'success', 'messege'=>'Reqest is canceled' ] );
     }
 
-    public function stop_shered_cart( $shared_id ) {
+    public function stop_shared_cart( $shared_id ) {
         SharedCarts::findOrFail( $shared_id )->delete();
         return response()->json( [ 'status'=>'success', 'messege'=>'Cart sharing is stoped' ] );
     }
