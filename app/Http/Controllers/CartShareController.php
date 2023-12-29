@@ -65,8 +65,19 @@ class CartShareController extends Controller {
 
     public function get_self_shared_carts( $auth_user_id ) {
 
-        $carts = Carts::with( 'sharedCart' )->where( 'customer_id', $auth_user_id )->get();
-        return response()->json( [ 'status'=>'success', 'messege'=>'Success', 'data'=>$carts ] );
+        $data = [];
+        $carts = Carts::where( 'customer_id', $auth_user_id )->get();
+
+        foreach ( $carts as $cart ) {
+
+            $share_carts = SharedCarts::select( 'shared_carts.*', 'users.email' )->where( 'cart_id', $cart->cart_id )->join( 'users', 'users.id', '=', 'shared_carts.customer_id' )->get();
+            foreach ( $share_carts as $item ) {
+                $cart[ 'shared_carts' ] = $item;
+            }
+            array_push( $data, $cart );
+        }
+
+        return response()->json( [ 'status'=>'success', 'messege'=>'Success', 'data'=>$data ] );
 
     }
 
