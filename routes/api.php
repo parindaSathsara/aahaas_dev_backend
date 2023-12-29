@@ -804,13 +804,10 @@ Route::group(['middleware' => 'api'], function () {
      Route::post('/accept_cart/{shared_id}',[CartShareController::class,'accept_cart']);
      Route::post('/decline_cart/{shared_id}',[CartShareController::class,'decline_cart']);
 
-     Route::get('/get_self_shared_carts/{auth_user_id}',[CartShareController::class,'get_self_shared_carts']);
-     Route::get('/get_self_pending_carts/{auth_user_id}',[CartShareController::class,'get_self_pending_carts']);
-
      Route::get('/get_self_sharing_carts/{auth_user_id}/{type}',[CartShareController::class,'get_self_sharing_carts']);
 
      Route::post('/cancel_self_cart_request/{shared_id}',[CartShareController::class,'cancel_cart_request']);
-     Route::post('/stop_self_shered_cart/{shared_id}',[CartShareController::class,'stop_shered_cart']);
+     Route::post('/stop_self_shared_cart/{shared_id}',[CartShareController::class,'stop_shared_cart']);
 
 
 
