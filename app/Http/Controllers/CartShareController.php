@@ -69,11 +69,12 @@ class CartShareController extends Controller {
         $carts = Carts::where( 'customer_id', $auth_user_id )->get();
 
         foreach ( $carts as $cart ) {
-
             $share_carts = SharedCarts::select( 'shared_carts.*', 'users.email' )->where( 'cart_id', $cart->cart_id )->join( 'users', 'users.id', '=', 'shared_carts.customer_id' )->get();
+            $share_carts_array = [];
             foreach ( $share_carts as $item ) {
-                $cart[ 'shared_carts' ] = $item;
+                $share_carts_array [] = $item;
             }
+            $cart[ 'shared_carts' ] = $share_carts_array;
             array_push( $data, $cart );
         }
 
