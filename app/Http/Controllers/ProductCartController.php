@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Models\ProductCart;
 use App\Models\ProductListingRates;
 use App\Models\ProductPreOrder;
+use App\Models\SharedCarts;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\MessageBag;
 use Illuminate\Validation\ValidationException;
@@ -282,10 +283,11 @@ class ProductCartController extends Controller
     {
         try {
             $getCarts = CustomerCarts::where('customer_id', $id)->get();
+            $getCartsShared = SharedCarts::where('shared_carts.customer_id', $id)->where('shared_carts.status', 'Shared')->join('tbl_carts', 'shared_carts.cart_id', 'tbl_carts.cart_id')->select('shared_carts.cart_id', 'shared_carts.customer_id', 'tbl_carts.cart_title')->get();
 
             return response()->json([
                 'status' => 200,
-                'cartData' => $getCarts,
+                'cartData' => $getCarts->concat($getCartsShared),
                 'message' => "Success"
             ]);
         } catch (\Exception $exception) {
@@ -453,9 +455,152 @@ class ProductCartController extends Controller
     {
 
         try {
-            $cartData = DB::table('tbl_customer_carts')
 
-                ->join('tbl_carts', 'tbl_customer_carts.cart_id', '=', 'tbl_carts.cart_id')
+            $sharedCarts = DB::table('shared_carts')
+                ->where('shared_carts.customer_id', $id)
+                ->join('tbl_carts', 'shared_carts.cart_id', '=', 'tbl_carts.cart_id')
+                ->join('tbl_customer_carts', 'shared_carts.cart_id', '=', 'tbl_customer_carts.cart_id')
+
+                ->join('tbl_maincategory', 'tbl_customer_carts.main_category_id', '=', 'tbl_maincategory.id')
+                ->leftJoin('tbl_lifestyle_bookings', 'tbl_customer_carts.lifestyle_pre_id', '=', 'tbl_lifestyle_bookings.lifestyle_booking_id')
+                ->leftJoin('tbl_lifestyle', 'tbl_lifestyle_bookings.lifestyle_id', '=', 'tbl_lifestyle.lifestyle_id')
+                ->leftJoin('tbl_lifestyle_inventory', 'tbl_lifestyle_bookings.lifestyle_inventory_id', '=', 'tbl_lifestyle_inventory.lifestyle_inventory_id')
+                ->leftJoin('tbl_lifestyle_rates', 'tbl_lifestyle_bookings.lifestyle_rate_id', '=', 'tbl_lifestyle_rates.lifestyle_rate_id')
+                ->leftJoin('tbl_lifestyle_discount', 'tbl_lifestyle_bookings.lifestyle_discount_id', '=', 'tbl_lifestyle_discount.discount_id')
+
+                ->leftJoin('tbl_essentials_preorder', 'tbl_customer_carts.listing_pre_id', '=', 'tbl_essentials_preorder.essential_pre_order_id')
+                ->leftJoin('tbl_product_delivery_rates', 'tbl_essentials_preorder.deliveryRateID', '=', 'tbl_product_delivery_rates.delivery_rate_id')
+                ->leftJoin('tbl_product_listing', 'tbl_essentials_preorder.essential_listing_id', '=', 'tbl_product_listing.id')
+                ->leftJoin('tbl_product_details', 'tbl_product_listing.id', '=', 'tbl_product_details.listing_id')
+                ->leftJoin('tbl_listing_inventory', 'tbl_essentials_preorder.essential_inventory_id', '=', 'tbl_listing_inventory.id')
+                ->leftJoin('tbl_product_listing_rates', 'tbl_listing_inventory.id', '=', 'tbl_product_listing_rates.inventory_id')
+                ->leftJoin('tbl_listing_discount', 'tbl_product_listing.id', '=', 'tbl_listing_discount.listing_id')
+
+                ->leftJoin('hotel_prebooking', 'tbl_customer_carts.hotels_pre_id', '=', 'hotel_prebooking.prebooking_id')
+
+                ->leftJoin('edu_tbl_booking', 'tbl_customer_carts.education_pre_id', '=', 'edu_tbl_booking.booking_id')
+
+                ->leftJoin('edu_tbl_education', 'edu_tbl_booking.education_id', '=', 'edu_tbl_education.education_id')
+                ->leftJoin('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')
+                ->leftJoin('edu_tbl_inventory', 'edu_tbl_booking.session_id', '=', 'edu_tbl_inventory.edu_id')
+                //->leftJoin('edu_tbl_rate', 'edu_tbl_education.education_id', '=', 'edu_tbl_rate.edu_id')
+                ->leftJoin('edu_tbl_rate', 'edu_tbl_booking.rate_id', '=', 'edu_tbl_rate.id') //Added newly
+                ->leftJoin('edu_tbl_discount', 'edu_tbl_rate.id', '=', 'edu_tbl_discount.edu_rate_id')
+                //->leftJoin('edu_tbl_rate', 'edu_tbl_booking.rate_id', '=', 'edu_tbl_rate.id')
+
+
+                ->select(
+                    'tbl_essentials_preorder.essential_listing_id',
+                    'tbl_essentials_preorder.address',
+                    'tbl_essentials_preorder.city',
+                    'tbl_essentials_preorder.addressType',
+                    'tbl_essentials_preorder.preffered_date',
+                    'tbl_product_listing.discount_status',
+                    'tbl_essentials_preorder.quantity',
+                    'tbl_customer_carts.*',
+                    'tbl_maincategory.*',
+                    'tbl_lifestyle.lifestyle_id',
+                    'tbl_lifestyle.lifestyle_city',
+                    'tbl_lifestyle.lifestyle_attraction_type',
+                    'tbl_lifestyle.lifestyle_name',
+                    'tbl_lifestyle.lifestyle_description',
+                    'tbl_lifestyle.active_status',
+                    'tbl_lifestyle.image',
+                    'tbl_lifestyle_inventory.pickup_time',
+                    'tbl_lifestyle_inventory.pickup_location',
+
+                    'tbl_lifestyle_bookings.*',
+                    'tbl_lifestyle_inventory.balance',
+                    'tbl_lifestyle_rates.adult_rate',
+                    'tbl_lifestyle_rates.child_rate',
+                    'tbl_lifestyle_rates.student_rate',
+
+                    'tbl_lifestyle_discount.discount_type',
+                    'tbl_lifestyle_discount.value',
+                    'tbl_lifestyle_rates.payment_policy',
+                    'tbl_lifestyle_rates.cancellation_days',
+                    'tbl_lifestyle_rates.cancel_policy',
+                    // 'tbl_lifestyle_rates.payment_policy',
+
+
+                    'tbl_lifestyle_inventory.inclusions as lifeStyleInclusions',
+                    'tbl_lifestyle_inventory.exclusions as lifeStyleExclusions',
+                    'tbl_lifestyle_inventory.inventory_date',
+                    'tbl_lifestyle_inventory.lifestyle_inventory_id',
+
+                    'tbl_lifestyle_rates.currency as lsCurrency',
+                    'tbl_product_listing_rates.currency as esCurrency',
+                    'tbl_product_listing_rates.currency as currency',
+                    'edu_tbl_rate.currency as eCurrency',
+
+                    'tbl_product_listing.listing_title',
+                    'tbl_product_listing.product_images as productImage',
+                    'tbl_product_listing_rates.rate_id as essentialsRateId',
+                    'tbl_listing_inventory.variant_type1',
+                    'tbl_listing_inventory.variant_type2',
+                    'tbl_listing_inventory.variant_type3',
+                    'tbl_listing_inventory.variant_type4',
+                    'tbl_listing_inventory.variant_type5',
+
+                    'tbl_product_listing_rates.mrp',
+                    'tbl_product_listing_rates.selling_rate',
+                    'tbl_product_listing_rates.wholesale_rate',
+                    'tbl_product_listing_rates.purchase_price',
+                    'tbl_product_listing.cancellationDay',
+
+
+                    'tbl_product_details.payment_options',
+
+                    'tbl_listing_discount.*',
+                    'tbl_essentials_preorder.essential_inventory_id',
+                    'tbl_essentials_preorder.quantity AS essentialQTY',
+                    'tbl_essentials_preorder.essential_pre_order_id',
+                    'tbl_essentials_preorder.deliveryRateID',
+                    'tbl_essentials_preorder.deliveryRate',
+                    'tbl_product_delivery_rates.currency as DeliveryCurrency',
+                    // 'tbl_product_delivery_rates.deliveryRateID',
+                    // 'tbl_essentials_preorder.ship_to AS ShipTo',
+                    // 'tbl_essentials_preorder.address AS ShipAddress',
+                    // 'tbl_essentials_preorder.preffered_delivery_date AS PrefDelDate',
+                    // 'tbl_essentials_preorder.message_to_seller AS MessageSeller',
+
+                    'hotel_prebooking.*',
+
+
+                    'edu_tbl_booking.student_type',
+                    'edu_tbl_booking.session_id',
+                    'edu_tbl_booking.discount_id as edu_discount_id',
+                    'edu_tbl_booking.rate_id as edu_rate_id',
+                    'edu_tbl_booking.booking_date as edu_booking_date',
+                    'edu_tbl_booking.student_name',
+                    'edu_tbl_booking.preffered_booking_date',
+                    'edu_tbl_booking.student_age',
+
+                    'edu_tbl_discount.id as discountID',
+                    'edu_tbl_discount.edu_id',
+                    'edu_tbl_discount.edu_inventory_id',
+                    'edu_tbl_discount.edu_rate_id',
+                    'edu_tbl_discount.value',
+                    'edu_tbl_discount.discount_type',
+
+
+                    'edu_tbl_education.*',
+                    'edu_tbl_details.*',
+                    'edu_tbl_inventory.*',
+                    'edu_tbl_rate.adult_course_fee',
+                    'edu_tbl_rate.child_course_fee',
+                    'edu_tbl_rate.id AS rateID',
+                    'tbl_carts.cart_title',
+                    'tbl_carts.customer_id as cartCustomerID'
+                )
+
+                ->where('tbl_customer_carts.cart_status', 'InCart')
+                ->get();
+
+            $cartData = DB::table('tbl_carts')
+                ->where('tbl_carts.customer_id', $id)
+                ->join('tbl_customer_carts', 'tbl_carts.cart_id', '=', 'tbl_customer_carts.cart_id')
+
                 ->join('tbl_maincategory', 'tbl_customer_carts.main_category_id', '=', 'tbl_maincategory.id')
                 ->leftJoin('tbl_lifestyle_bookings', 'tbl_customer_carts.lifestyle_pre_id', '=', 'tbl_lifestyle_bookings.lifestyle_booking_id')
                 ->leftJoin('tbl_lifestyle', 'tbl_lifestyle_bookings.lifestyle_id', '=', 'tbl_lifestyle.lifestyle_id')
@@ -586,37 +731,54 @@ class ProductCartController extends Controller
                     'edu_tbl_rate.child_course_fee',
                     'edu_tbl_rate.id AS rateID',
 
+                    'tbl_carts.cart_title',
+                    'tbl_carts.customer_id as cartCustomerID'
+
                 )
 
-                ->where('tbl_customer_carts.customer_id', $id)
+
                 ->where('tbl_customer_carts.cart_status', 'InCart')
                 ->get();
 
-
-            $cartDataCategories = DB::table('tbl_customer_carts')
-                ->join('tbl_maincategory', 'tbl_customer_carts.main_category_id', '=', 'tbl_maincategory.id')
-                ->join('tbl_carts', 'tbl_customer_carts.cart_id', '=', 'tbl_carts.cart_id')
-                ->groupBy('tbl_customer_carts.main_category_id', 'tbl_customer_carts.cart_id')
-                ->where('tbl_customer_carts.customer_id', $id)
-                ->where('tbl_customer_carts.cart_status', 'InCart')
-                ->get();
+            $allCustomerCarts = $cartData->concat($sharedCarts);
 
 
-            $cartDataDates = DB::table('tbl_customer_carts')
-                ->join('tbl_maincategory', 'tbl_customer_carts.main_category_id', '=', 'tbl_maincategory.id')
-                ->join('tbl_carts', 'tbl_customer_carts.cart_id', '=', 'tbl_carts.cart_id')
-                ->groupBy('tbl_customer_carts.order_preffered_date')
-                ->select('order_preffered_date')
-                ->where('tbl_customer_carts.customer_id', $id)
-                ->where('tbl_customer_carts.cart_status', 'InCart')
-                ->get();
+            foreach ($allCustomerCarts as $customerCart) {
+                $cartDataCategories[] = ["main_category_id" => $customerCart->main_category_id, "maincat_type" => $customerCart->maincat_type];
+                $cartDataDates[] = ["order_preffered_date" => $customerCart->order_preffered_date];
+                $customerMultiCarts[] = ["cart_id" => $customerCart->cart_id, "customer_id" => $customerCart->cartCustomerID, "cart_title" => $customerCart->cart_title];
+            }
 
-            $customerMultiCarts = DB::table('tbl_carts')
-                ->join('tbl_customer_carts', 'tbl_carts.cart_id', '=', 'tbl_customer_carts.cart_id')
-                ->groupBy('tbl_customer_carts.cart_id')
-                ->where('tbl_customer_carts.customer_id', $id)
-                ->where('tbl_customer_carts.cart_status', 'InCart')
-                ->get();
+            $cartDataCategories = collect($cartDataCategories)->unique('main_category_id')->values();
+            $cartDataDates = collect($cartDataDates)->unique('order_preffered_date')->values();
+
+            $customerMultiCarts = collect($customerMultiCarts)->unique('cart_id')->values();
+
+            // $cartDataCategories = DB::table('tbl_customer_carts')
+            //     ->join('tbl_maincategory', 'tbl_customer_carts.main_category_id', '=', 'tbl_maincategory.id')
+            //     ->join('tbl_carts', 'tbl_customer_carts.cart_id', '=', 'tbl_carts.cart_id')
+            //     ->groupBy('tbl_customer_carts.main_category_id', 'tbl_customer_carts.cart_id')
+            //     ->where('tbl_customer_carts.customer_id', $id)
+            //     ->where('tbl_customer_carts.cart_status', 'InCart')
+            //     ->get();
+
+
+
+            // $cartDataDates = DB::table('tbl_customer_carts')
+            //     ->join('tbl_maincategory', 'tbl_customer_carts.main_category_id', '=', 'tbl_maincategory.id')
+            //     ->join('tbl_carts', 'tbl_customer_carts.cart_id', '=', 'tbl_carts.cart_id')
+            //     ->groupBy('tbl_customer_carts.order_preffered_date')
+            //     ->select('order_preffered_date')
+            //     ->where('tbl_customer_carts.customer_id', $id)
+            //     ->where('tbl_customer_carts.cart_status', 'InCart')
+            //     ->get();
+
+            // $customerMultiCarts = DB::table('tbl_carts')
+            //     ->join('tbl_customer_carts', 'tbl_carts.cart_id', '=', 'tbl_customer_carts.cart_id')
+            //     ->groupBy('tbl_customer_carts.cart_id')
+            //     ->where('tbl_customer_carts.customer_id', $id)
+            //     ->where('tbl_customer_carts.cart_status', 'InCart')
+            //     ->get();
 
 
             return response()->json([
