@@ -283,7 +283,7 @@ class ProductCartController extends Controller
     {
         try {
             $getCarts = CustomerCarts::where('customer_id', $id)->get();
-            $getCartsShared = SharedCarts::where('shared_carts.customer_id', $id)->where('shared_carts.status', 'Shared')->join('tbl_carts', 'shared_carts.cart_id', 'tbl_carts.cart_id')->select('shared_carts.cart_id', 'shared_carts.customer_id', 'tbl_carts.cart_title')->get();
+            $getCartsShared = SharedCarts::where('shared_carts.customer_id', $id)->where('shared_carts.status', 'Shared')->join('tbl_carts', 'shared_carts.cart_id', 'tbl_carts.cart_id')->join('users', 'tbl_carts.customer_id', 'users.id')->select('shared_carts.cart_id', 'shared_carts.customer_id', 'tbl_carts.cart_title', 'tbl_carts.customer_id AS cartHolder', 'users.email')->get();
 
             return response()->json([
                 'status' => 200,
