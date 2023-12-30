@@ -27,7 +27,9 @@ class LifeStyleBook extends Model
         'booking_date',
         'booking_status',
         'user_id',
-        'lifestyle_booking_id'
+        'lifestyle_booking_id',
+        'customer_address',
+        'customer_location_latlon'
     ];
 
     public $timestamps = false;

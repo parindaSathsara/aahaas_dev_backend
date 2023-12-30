@@ -745,7 +745,7 @@ class ProductCartController extends Controller
 
 
             foreach ($allCustomerCarts as $customerCart) {
-                $cartDataCategories[] = ["main_category_id" => $customerCart->main_category_id, "maincat_type" => $customerCart->maincat_type];
+                $cartDataCategories[] = ["main_category_id" => $customerCart->main_category_id, "maincat_type" => $customerCart->maincat_type, "cart_id" => $customerCart->cart_id];
                 $cartDataDates[] = ["order_preffered_date" => $customerCart->order_preffered_date];
                 $customerMultiCarts[] = ["cart_id" => $customerCart->cart_id, "customer_id" => $customerCart->cartCustomerID, "cart_title" => $customerCart->cart_title];
             }

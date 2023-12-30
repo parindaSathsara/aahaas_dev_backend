@@ -67,6 +67,7 @@ class LifeStyleBookingController extends Controller
                 } else {
 
                     $LifeStyleBookingCount = DB::table('tbl_lifestyle_bookings')->where([
+                        'booking_status' => "Pending",
                         'lifestyle_inventory_id' => $request->input('lifestyle_inventory_id'),
                         'lifestyle_rate_id' => $request->input('lifestyle_rate_id'),
                         'user_id' => $request->input('user_id')
@@ -91,6 +92,8 @@ class LifeStyleBookingController extends Controller
                             'lifestyle_children_count' => $request->input('lifestyle_children_count'),
                             'lifestyle_adult_count' => $request->input('lifestyle_adult_count'),
                             'booking_status' => 'Pending',
+                            'customer_location_latlon' => $request->input('customer_location_latlon'),
+                            'customer_address' => $request->input('customer_address'),
                             'user_id' => $request->input('user_id'),
                         ]);
 
