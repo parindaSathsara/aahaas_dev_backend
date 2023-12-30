@@ -220,7 +220,9 @@ return [
         'GeoIP' => \Torann\GeoIP\Facades\GeoIP::class,
         'Excel' => Maatwebsite\Excel\Facades\Excel::class,
         'Vimeo' => Vimeo\Laravel\Facades\Vimeo::class,
-        'Location' => 'Stevebauman\Location\Facades\Location'
+        'Location' => 'Stevebauman\Location\Facades\Location',
+        'JWTAuth'=>Tymon\JWTAuth\Facades\JWTAuth::class,
+        'JWTAuthFactory'=>Tymon\JWTAuth\Facades\JWTAuthFactory::class,
     ])->toArray(),
 
 ];

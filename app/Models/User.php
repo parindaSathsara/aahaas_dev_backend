@@ -11,17 +11,16 @@ use Laravel\Sanctum\HasApiTokens;
 use Rappasoft\LaravelAuthenticationLog\Traits\AuthenticationLoggable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements MustVerifyEmail
-{
+class User extends Authenticatable implements JWTSubject, MustVerifyEmail {
     use HasApiTokens, HasFactory, Notifiable, AuthenticationLoggable;
 
     protected $table = 'users';
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    * The attributes that are mass assignable.
+    *
+    * @var array<int, string>
+    */
     protected $fillable = [
         'username',
         'email',
@@ -37,10 +36,10 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
+    * The attributes that should be hidden for serialization.
+    *
+    * @var array<int, string>
+    */
     protected $hidden = [
         'password',
         'remember_token',
@@ -49,23 +48,31 @@ class User extends Authenticatable implements MustVerifyEmail
     // public $timestamps = false;
 
     /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
+    * The attributes that should be cast.
+    *
+    * @var array<string, string>
+    */
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
 
     //deactivate user account
-    public function deactUserAccount($id)
-    {
+
+    public function deactUserAccount( $id ) {
         try {
 
-            DB::table('users')->where('id',$id)->update(['user_status'=> 'Deactivate']);
-            
-        } catch (\Throwable $th) {
+            DB::table( 'users' )->where( 'id', $id )->update( [ 'user_status'=> 'Deactivate' ] );
+
+        } catch ( \Throwable $th ) {
             throw $th;
         }
+    }
+
+    public function getJWTIdentifier() {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims() {
+        return [];
     }
 }
