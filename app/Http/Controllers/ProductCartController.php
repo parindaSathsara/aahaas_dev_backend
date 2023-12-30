@@ -282,7 +282,7 @@ class ProductCartController extends Controller
     public function getCarts($id)
     {
         try {
-            $getCarts = CustomerCarts::where('customer_id', $id)->get();
+            $getCarts = CustomerCarts::where('customer_id', $id)->join('users', 'tbl_carts.customer_id', 'users.id')->select('tbl_carts.cart_id', 'tbl_carts.customer_id', 'tbl_carts.cart_title', 'tbl_carts.customer_id AS cartHolder', 'users.email')->get();
             $getCartsShared = SharedCarts::where('shared_carts.customer_id', $id)->where('shared_carts.status', 'Shared')->join('tbl_carts', 'shared_carts.cart_id', 'tbl_carts.cart_id')->join('users', 'tbl_carts.customer_id', 'users.id')->select('shared_carts.cart_id', 'shared_carts.customer_id', 'tbl_carts.cart_title', 'tbl_carts.customer_id AS cartHolder', 'users.email')->get();
 
             return response()->json([
