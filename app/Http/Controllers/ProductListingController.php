@@ -419,7 +419,7 @@ class ProductListingController extends Controller
                 // ->join('tbl_product_listing_rates', 'tbl_listing_inventory.id', '=', 'tbl_product_listing_rates.inventory_id','inner','tbl_product_listing_rates.qty==0')
 
                 ->join("tbl_product_listing_rates", function ($join) {
-                    $join->on("tbl_listing_inventory.id", "=", "tbl_product_listing_rates.inventory_id")->where('tbl_product_listing_rates.qty', '>', 0);;
+                    $join->on("tbl_listing_inventory.id", "=", "tbl_product_listing_rates.inventory_id")->orderBy('tbl_product_listing_rates.mrp', 'asc')->where('tbl_product_listing_rates.qty', '>', 0);
                 })
 
                 ->leftJoin('tbl_listing_discount', 'tbl_product_listing.id', '=', 'tbl_listing_discount.listing_id')
@@ -445,7 +445,7 @@ class ProductListingController extends Controller
                     'tbl_listing_inventory.variant_type2',
                     'tbl_listing_inventory.variant_type3',
                     'tbl_listing_inventory.variant_type4',
-                    DB::raw("min(tbl_product_listing_rates.mrp) AS mrp_price")
+                    'tbl_product_listing_rates.mrp AS mrp_price'
                 )
                 ->orderBy('tbl_product_listing.id', 'desc')
                 ->groupBy('tbl_product_listing.id')

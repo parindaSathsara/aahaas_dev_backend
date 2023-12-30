@@ -405,7 +405,7 @@ class EducationListingsController extends Controller
             $whereArray = [['edu_tbl_education.category1', '=', $category1]];
         }
 
-        array_push($whereArray, ['edu_tbl_inventory.course_inv_startdate', '>=', $currentTime]);
+        array_push($whereArray, ['edu_tbl_inventory.course_inv_startdate', '>=', $currentTime], ['edu_tbl_rate.course_admission_deadline', '>=', $currentTime]);
 
 
         try {
@@ -434,6 +434,7 @@ class EducationListingsController extends Controller
                 // )
 
                 ->where($whereArray)
+
                 ->groupBy('edu_tbl_inventory.edu_id')
                 ->limit($limit)
                 ->get();

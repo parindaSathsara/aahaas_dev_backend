@@ -15,7 +15,7 @@
              <br />
 
              <p><b style="color:#6f6f6f;margin-bottom:5px;">Order NO: </b><span style="color:#6f6f6f;">#{{$orderid}}</span></p>
-             <p><b style="color:#6f6f6f;margin-bottom:5px;">Order Date: </b><span style="color:#6f6f6f;">{{$orderDate}}</span></p>
+             <p><b style="color:#6f6f6f;margin-bottom:5px;">Order Date: </b><span style="color:#6f6f6f;">{{$orderDate->format('Y-m-d')}}</span></p>
              <p><b style="color:#6f6f6f">Payment Type: </b><span style="color:#6f6f6f;">{{$payType}}</span></p>
          </div>
 
