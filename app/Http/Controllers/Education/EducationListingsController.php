@@ -444,6 +444,7 @@ class EducationListingsController extends Controller
             foreach ($educations as $educationListing) {
                 $groupType[] = $educationListing->group_type;
                 $courseMode[] = $educationListing->course_mode;
+
                 $sessionMode[] = $educationListing->sessions;
                 $curriculumType[] = $educationListing->curriculum;
             }

@@ -47,7 +47,8 @@ class LifeStyleBookingController extends Controller
                         'lifestyle_children_count' => $request->input('lifestyle_children_count'),
                         'lifestyle_adult_count' => $request->input('lifestyle_adult_count'),
                         'booking_status' => 'Pending',
-
+                        'customer_location_latlon' => $request->input('customer_location_latlon'),
+                        'customer_address' => $request->input('customer_address'),
                         'user_id' => $request->input('user_id'),
                     ]);
 
