@@ -7,7 +7,7 @@ return [
     | Authentication Defaults
     |--------------------------------------------------------------------------
     |
-    | This option controls the default authentication "guard" and password
+    | This option controls the default authentication 'guard' and password
     | reset options for your application. You may change these defaults
     | as required, but they're a perfect start for most applications.
     |
@@ -31,19 +31,14 @@ return [
     | users are actually retrieved out of your database or other storage
     | mechanisms used by this application to persist your user's data.
     |
-    | Supported: "session"
+    | Supported: 'session'
     |
     */
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
         'api' => [
-            'driver' => 'session',
+            'driver' => 'jwt',
             'provider' => 'users',
-            'hash' => true,
         ],
     ],
 

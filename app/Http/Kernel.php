@@ -48,8 +48,8 @@ class Kernel extends HttpKernel
         'api' => [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             // 'throttle:60,1',
-            \Illuminate\Session\Middleware\AuthenticateSession::class,
-            \Illuminate\Session\Middleware\StartSession::class,
+            //\Illuminate\Session\Middleware\AuthenticateSession::class,
+            //\Illuminate\Session\Middleware\StartSession::class,
             // AuthenticateSession::class,
             \App\Http\Middleware\EncryptCookies::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,

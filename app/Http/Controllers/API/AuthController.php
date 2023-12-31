@@ -68,8 +68,12 @@ class AuthController extends Controller
 
                     Mail::mailer('smtp')->to($newUser->email)->send(new UserVerification($newUser));
 
-                    $currentTime = \Carbon\Carbon::now()->toDateTimeString();
-                    $token = $newUser->createToken($newUser->email . '_Token')->plainTextToken;
+                    // $currentTime = \Carbon\Carbon::now()->toDateTimeString();
+                    // $token = $newUser->createToken($newUser->email . '_Token')->plainTextToken;
+
+                    $credentials = request(['email', 'password']);
+                    $token = auth()->attempt($credentials);
+                    
                 } catch (\Exception $ex) {
                     // $newUser->delete();
                     throw $ex;
@@ -180,8 +184,11 @@ class AuthController extends Controller
                 // ->put('user',$user)
                 else {
 
-                    $user->tokens()->delete();
-                    $token = $user->createToken($user->email . '_Token')->plainTextToken;
+                    // $user->tokens()->delete();
+                    // $token = $user->createToken($user->email . '_Token')->plainTextToken;
+                    $credentials = request(['email', 'password']);
+                    $token = auth()->attempt($credentials);
+
 
                     RateLimiter::clear($this->throttleKey());
 

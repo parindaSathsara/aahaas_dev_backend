@@ -112,12 +112,13 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('/get-all-user', [UserController::class, 'index']);
 }); //test
 
+Route::post('/login-user', [AuthController::class, 'userLoginWeb'])->name('login');
+Route::post('/new-user-registration', [AuthController::class, 'registerUser'])->name('userregistration');
 
-Route::group(['middleware' => 'api'], function () {
+Route::group(['middleware' => 'jwt.auth'], function () {
     // Route::post('/login-user', ['as' => 'login', 'uses' => 'AuthController@userLoginWeb']);
-    Route::post('/login-user', [AuthController::class, 'userLoginWeb'])->name('login');
 
-    Route::post('/new-user-registration', [AuthController::class, 'registerUser'])->name('userregistration');
+
 
     Route::get('/email/verify/{id}', [VerificationController::class, 'verify'])->name('verification.verify');
 

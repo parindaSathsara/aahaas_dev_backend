@@ -11,7 +11,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Rappasoft\LaravelAuthenticationLog\Traits\AuthenticationLoggable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail,JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable, AuthenticationLoggable;
 
@@ -63,9 +63,24 @@ class User extends Authenticatable implements MustVerifyEmail
         try {
 
             DB::table('users')->where('id',$id)->update(['user_status'=> 'Deactivate']);
-            
+
         } catch (\Throwable $th) {
             throw $th;
         }
+    }
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims()
+    {
+        return [];
     }
 }
