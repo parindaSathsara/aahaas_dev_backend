@@ -73,7 +73,7 @@ class AuthController extends Controller
 
                     $credentials = request(['email', 'password']);
                     $token = auth()->attempt($credentials);
-                    
+
                 } catch (\Exception $ex) {
                     // $newUser->delete();
                     throw $ex;
@@ -277,7 +277,8 @@ class AuthController extends Controller
                 $user->tokens()->delete();
                 Session::put('useremail', $email);
 
-                $token = $user->createToken($email . '_google_Token')->plainTextToken;
+                //$token = $user->createToken($email . '_google_Token')->plainTextToken;
+                $token = auth()->login($user);
 
                 Session::put('user', $email);
                 Session::save();
@@ -327,7 +328,8 @@ class AuthController extends Controller
                     'cart_title' => 'My Cart'
                 ]);
 
-                $token = $newUser->createToken($newUser->email . '_google_Token')->plainTextToken;
+                // $token = $newUser->createToken($newUser->email . '_google_Token')->plainTextToken;
+                $token = auth()->login($newUser);
 
                 Session::put('user', $newUser->email);
                 Session::save();
@@ -411,7 +413,8 @@ class AuthController extends Controller
 
             if ($facebookUserData > 0) {
                 $user->tokens()->delete();
-                $token = $user->createToken($email . '_facebook_Token')->plainTextToken;
+                // $token = $user->createToken($email . '_facebook_Token')->plainTextToken;
+                $token = auth()->login($user);
                 Session::put('useremail', $email);
                 Session::put('user', $user->email);
                 Session::save();
@@ -461,7 +464,8 @@ class AuthController extends Controller
                     'cart_title' => 'My Cart'
                 ]);
 
-                $token = $newUser->createToken($newUser->email . '_facebook_Token')->plainTextToken;
+                // $token = $newUser->createToken($newUser->email . '_facebook_Token')->plainTextToken;
+                $token = auth()->login($newUser);
 
                 Session::put('user', $newUser->email);
                 Session::save();
@@ -508,7 +512,8 @@ class AuthController extends Controller
 
             if ($facebookUserData > 0) {
                 $user->tokens()->delete();
-                $token = $user->createToken($email . '_facebook_Token')->plainTextToken;
+                // $token = $user->createToken($email . '_facebook_Token')->plainTextToken;
+                $token = auth()->login($user);
                 Session::put('useremail', $email);
                 Session::put('user', $user->email);
                 Session::save();
@@ -558,7 +563,8 @@ class AuthController extends Controller
                     'cart_title' => 'My Cart'
                 ]);
 
-                $token = $newUser->createToken($newUser->email . '_facebook_Token')->plainTextToken;
+                // $token = $newUser->createToken($newUser->email . '_facebook_Token')->plainTextToken;
+                $token = auth()->login($newUser);
 
                 Session::put('user', $newUser->email);
                 Session::save();
@@ -616,7 +622,8 @@ class AuthController extends Controller
 
             if ($userRowCount > 0 || $newCus > 0) {
 
-                $token = $user->createToken($MobileNumber . '_mobile_Token')->plainTextToken;
+                // $token = $user->createToken($MobileNumber . '_mobile_Token')->plainTextToken;
+                $token = auth()->login($user);
 
                 // return $token;
 
@@ -653,7 +660,9 @@ class AuthController extends Controller
 
 
 
-                $token = $newUser->createToken($MobileNumber . '_mobile_Token')->plainTextToken;
+                //$token = $newUser->createToken($MobileNumber . '_mobile_Token')->plainTextToken;
+                $token = auth()->login($newUser);
+
 
                 Session::put('user', $newUser);
                 Session::save();

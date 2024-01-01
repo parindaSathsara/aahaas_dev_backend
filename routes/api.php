@@ -112,14 +112,31 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('/get-all-user', [UserController::class, 'index']);
 }); //test
 
+///////////////// Bypass JWT
 Route::post('/login-user', [AuthController::class, 'userLoginWeb'])->name('login');
 Route::post('/new-user-registration', [AuthController::class, 'registerUser'])->name('userregistration');
+Route::post('/google-login-user', [AuthController::class, 'getGoogleUserData']);
+Route::post('/facebook-login-user', [AuthController::class, 'getFacebookUserData']);
+Route::post('/apple-login-user', [AuthController::class, 'getAppleUserData']);
+Route::post('/mobile-user', [AuthController::class, 'mobileUserCreation']);
+
+ /* Forgot Controller Routes ----------  */
+Route::post('/forgot-password', [ForgotController::class, 'forgotPassword']);
+Route::post('/forgot-password-mobile', [ForgotController::class, 'forgotPasswordMobile']);
+Route::post('/userreset', [ForgotController::class, 'resetPassword']);
+
+Route::post('/onetimepassword', [AuthController::class, 'oneTimePasswordUpdate']);
+
+ //--------------------------FirebaseFCM
+Route::post('/save_fcm_tokens', [UserController::class, 'saveFCMTokens']);
+/////////////////////
+
+
+
+
 
 Route::group(['middleware' => 'jwt.auth'], function () {
     // Route::post('/login-user', ['as' => 'login', 'uses' => 'AuthController@userLoginWeb']);
-
-
-
     Route::get('/email/verify/{id}', [VerificationController::class, 'verify'])->name('verification.verify');
 
     /* User Controller Routes ----------  */
@@ -129,17 +146,12 @@ Route::group(['middleware' => 'jwt.auth'], function () {
     Route::delete('/remove-user/{id}', [UserController::class, 'userDeletion']);
 
     /* Auth Controller Routes ----------  */
-    Route::post('/google-login-user', [AuthController::class, 'getGoogleUserData']);
-    Route::post('/facebook-login-user', [AuthController::class, 'getFacebookUserData']);
 
-    Route::post('/apple-login-user', [AuthController::class, 'getAppleUserData']);
 
     Route::get('/get-existing-user/{id}', [AuthController::class, 'googleUserDataCheck']);
     Route::get('/get-existing-user-facebook/{id}', [AuthController::class, 'googleUserDataCheck']);
-    Route::post('/mobile-user', [AuthController::class, 'mobileUserCreation']);
     Route::get('/authenicate-user-byid/{id}', [AuthController::class, 'getCurrentUserById']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/onetimepassword', [AuthController::class, 'oneTimePasswordUpdate']);
     // Route::get('/user-verify-view', [AuthController::class, 'verifyMail']);
 
 
@@ -156,13 +168,6 @@ Route::group(['middleware' => 'jwt.auth'], function () {
 
 
     Route::get('/get-customer-data-by-originID/{id}', [CustomerController::class, 'getCustomerDataByOriginId']);
-
-    /* Forgot Controller Routes ----------  */
-    Route::post('/forgot-password', [ForgotController::class, 'forgotPassword']);
-
-    Route::post('/forgot-password-mobile', [ForgotController::class, 'forgotPasswordMobile']);
-
-    Route::post('/userreset', [ForgotController::class, 'resetPassword']);
 
     // Route::post('/forgot-view', [ForgotController::class, 'fogotview']);
 
@@ -786,13 +791,6 @@ Route::group(['middleware' => 'jwt.auth'], function () {
     Route::post('/update_hotel_status_cart', [TBOController::class, 'updateHotelStatusCart']);
 
     Route::get('/groupRatesLifestyles', [TBOController::class, 'groupRates']);
-
-
-
-
-    //--------------------------FirebaseFCM
-
-    Route::post('/save_fcm_tokens', [UserController::class, 'saveFCMTokens']);
 
 
      //--------------------------CartShare
