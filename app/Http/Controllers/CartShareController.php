@@ -16,6 +16,11 @@ class CartShareController extends Controller {
             return response()->json( [ 'status'=>'fail', 'messege'=>'Unable to find a user with the provided email' ] );
         }
 
+        $self = User::where( 'id', '!=', auth()->user()->id );
+        if ( $self ) {
+            return response()->json( [ 'status'=>'fail', 'messege'=>'You cant share your own carts with yourself' ] );
+        }
+
         $find_cart_by_user = SharedCarts::where( 'cart_id', $cart_id )->where( 'customer_id', $find_user->id )->first();
         if ( $find_cart_by_user ) {
             if ( $find_cart_by_user->status == 'Pending' ) {
