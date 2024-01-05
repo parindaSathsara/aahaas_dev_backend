@@ -41,6 +41,9 @@ class MainCheckout extends Model
         'delivery_date',
         'delivery_address',
         'cx_id',
+        'balance_amount',
+        'paid_amount',
+        'total_amount'
     ];
 
     public $timestamps = false;

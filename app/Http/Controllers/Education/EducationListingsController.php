@@ -413,29 +413,16 @@ class EducationListingsController extends Controller
                 // ->join('edu_tbl_vendor', 'edu_tbl_education.vendor_id', '=', 'edu_tbl_vendor.id')
                 ->join('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')
                 // ->join('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
-                ->join('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
-                ->join('edu_tbl_rate', 'edu_tbl_inventory.id', '=', 'edu_tbl_rate.edu_inventory_id')
+                ->join('edu_tbl_rate', 'edu_tbl_education.education_id', '=', 'edu_tbl_rate.edu_id')
+
+                ->join('edu_tbl_inventory', 'edu_tbl_rate.id', '=', 'edu_tbl_inventory.rate_id')
+
                 ->join('edu_tbl_termscond', 'edu_tbl_education.education_id', 'edu_tbl_termscond.edu_id')
-                ->join('edu_tbl_discount', 'edu_tbl_rate.id', '=', 'edu_tbl_discount.edu_rate_id')
-                // ->select(
-                //     'edu_tbl_education.*',
-                //     // 'edu_tbl_vendor.*',
-                //     // 'edu_tbl_details.*',
-                //     'edu_tbl_inventory.*',
-                //     'edu_tbl_rate.currency',
-                //     'edu_tbl_rate.adult_course_fee',
-                //     'edu_tbl_rate.child_course_fee',
-                //     'edu_tbl_rate.deadline_no_ofdays',
-                //     'edu_tbl_rate.course_admission_deadline',
-                //     'edu_tbl_rate.sale_start',
-                //     'edu_tbl_termscond.cancel_deadline',
-                //     'edu_tbl_discount.discount_type',
-                //     'edu_tbl_discount.value'
-                // )
+                ->leftJoin('edu_tbl_discount', 'edu_tbl_rate.id', '=', 'edu_tbl_discount.edu_rate_id')
 
-                ->where($whereArray)
+                // ->where($whereArray)
 
-                ->groupBy('edu_tbl_inventory.edu_id')
+                ->groupBy('edu_tbl_education.education_id')
                 ->limit($limit)
                 ->get();
 
@@ -473,9 +460,11 @@ class EducationListingsController extends Controller
                 ->join('edu_tbl_vendor', 'edu_tbl_education.vendor_id', '=', 'edu_tbl_vendor.id')
                 ->join('edu_tbl_details', 'edu_tbl_education.education_id', '=', 'edu_tbl_details.edu_id')
                 // ->join('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
-                ->join('edu_tbl_inventory', 'edu_tbl_education.education_id', '=', 'edu_tbl_inventory.edu_id')
-                ->join('edu_tbl_rate', 'edu_tbl_inventory.id', '=', 'edu_tbl_rate.edu_inventory_id')
-                ->join('edu_tbl_servicelocation', 'edu_tbl_rate.service_location_typeid', '=', 'edu_tbl_servicelocation.id')
+
+                ->join('edu_tbl_rate', 'edu_tbl_education.education_id', '=', 'edu_tbl_rate.edu_id')
+                ->join('edu_tbl_inventory', 'edu_tbl_rate.id', '=', 'edu_tbl_inventory.rate_id')
+
+                ->leftJoin('edu_tbl_servicelocation', 'edu_tbl_rate.service_location_typeid', '=', 'edu_tbl_servicelocation.id')
                 ->join('edu_tbl_termscond', 'edu_tbl_education.education_id', 'edu_tbl_termscond.edu_id')
                 ->join('edu_tbl_discount', 'edu_tbl_rate.id', '=', 'edu_tbl_discount.edu_rate_id')
                 ->select(
@@ -500,7 +489,7 @@ class EducationListingsController extends Controller
                     'edu_tbl_termscond.*'
                 )
                 ->where('edu_tbl_education.education_id', $id)
-                ->groupBy('edu_tbl_inventory.edu_id')
+                ->groupBy('edu_tbl_education.education_id')
                 ->get();
 
 

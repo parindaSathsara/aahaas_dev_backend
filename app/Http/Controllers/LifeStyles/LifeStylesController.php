@@ -149,12 +149,15 @@ class LifeStylesController extends Controller
         * sin(radians(tbl_lifestyle.latitude))))";
 
         $lifeStyles = DB::table('tbl_lifestyle')
-            ->leftJoin('tbl_lifestyle_detail', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_detail.lifestyle_id')
-            ->join('tbl_lifestyle_inventory', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_inventory.lifestyle_id')
             ->where($whereArray)
-            ->join('tbl_lifestyle_rates', 'tbl_lifestyle_inventory.lifestyle_inventory_id', '=', 'tbl_lifestyle_rates.lifestyle_inventory_id')
+            ->leftJoin('tbl_lifestyle_detail', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_detail.lifestyle_id')
 
-            ->leftJoin('tbl_lifestyle_discount', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_discount.lifestyle_id')
+            ->join('tbl_lifestyle_rates', 'tbl_lifestyle.lifestyle_id', '=', 'tbl_lifestyle_rates.lifestyle_id')
+            ->leftJoin('tbl_lifestyle_discount', 'tbl_lifestyle_rates.lifestyle_rate_id', '=', 'tbl_lifestyle_discount.rate_id')
+            ->join('tbl_lifestyle_inventory', 'tbl_lifestyle_rates.lifestyle_rate_id', '=', 'tbl_lifestyle_inventory.rate_id')
+
+
+
             ->select(
                 'tbl_lifestyle_rates.adult_rate AS adult_rate',
                 'tbl_lifestyle_rates.child_rate AS child_rate',
@@ -169,7 +172,6 @@ class LifeStylesController extends Controller
                 // 'tbl_lifestyle_inventory.inventory_date',
                 'tbl_lifestyle_inventory.pickup_time',
 
-                'tbl_lifestyle_discount.lifestyle_inventory_id',
                 'tbl_lifestyle_discount.discount_limit',
                 'tbl_lifestyle_discount.discount_type',
                 'tbl_lifestyle_discount.offered_product',
@@ -187,12 +189,14 @@ class LifeStylesController extends Controller
                 // "{$har} as Distance"
             )
 
-            ->groupBy('tbl_lifestyle_inventory.lifestyle_id')
+            ->groupBy('tbl_lifestyle.lifestyle_id')
             ->orderBy('tbl_lifestyle_inventory.inventory_date')
-
             ->selectRaw("{$har} AS distance")
-            ->whereRaw("{$har} < ?", [$rad])
+            // ->whereRaw("{$har} < ?", [$rad])
             ->limit($limit)
+            // ->selectRaw("{$har} AS distance")
+            // ->whereRaw("{$har} < ?", [$rad])
+            // ->limit($limit)
             // ->selectRaw("{$distance} AS distance")
             // ->whereRaw("{$distance} < ?", [$rad])
             ->get();
@@ -251,6 +255,7 @@ class LifeStylesController extends Controller
             ->select(
                 DB::raw("min(tbl_lifestyle_rates.adult_rate) AS adult_rate"),
                 DB::raw("min(tbl_lifestyle_rates.child_rate) AS child_rate"),
+                'tbl_lifestyle_rates.lifestyle_rate_id'
             )
             ->where('tbl_lifestyle.lifestyle_id', $id)
 
@@ -276,6 +281,7 @@ class LifeStylesController extends Controller
 
         $lifeStyleDiscounts = DB::table('tbl_lifestyle_discount')
             ->where('tbl_lifestyle_discount.lifestyle_id', $id)
+            ->whereNot('tbl_lifestyle_discount.discount_type', null)
             ->get();
 
 

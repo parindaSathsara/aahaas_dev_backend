@@ -743,6 +743,9 @@ class ProductCartController extends Controller
 
             $allCustomerCarts = $cartData->concat($sharedCarts);
 
+            $cartDataCategories = [];
+            $cartDataDates = [];
+            $customerMultiCarts = [];
 
             foreach ($allCustomerCarts as $customerCart) {
                 $cartDataCategories[] = ["main_category_id" => $customerCart->main_category_id, "maincat_type" => $customerCart->maincat_type, "cart_id" => $customerCart->cart_id];
@@ -752,7 +755,6 @@ class ProductCartController extends Controller
 
             $cartDataCategories = collect($cartDataCategories)->unique('main_category_id')->values();
             $cartDataDates = collect($cartDataDates)->unique('order_preffered_date')->values();
-
             $customerMultiCarts = collect($customerMultiCarts)->unique('cart_id')->values();
 
             // $cartDataCategories = DB::table('tbl_customer_carts')

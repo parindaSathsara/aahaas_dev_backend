@@ -52,6 +52,9 @@ class FullCartCheckoutController extends Controller
                     'delivery_date' => $request['preffered_delivery_date'],
                     'delivery_address' => $request['address'],
                     'cx_id' => $request->input('customer_id'),
+                    'balance_amount' => $request->input('balance_amount'),
+                    'paid_amount' => $request->input('paid_amount'),
+                    'total_amount' => $request->input('totamount'),
                 ]);
             } else {
                 MainCheckout::create([
@@ -82,6 +85,9 @@ class FullCartCheckoutController extends Controller
                     'delivery_date' => $request['preffered_delivery_date'],
                     'delivery_address' => $request['address'],
                     'cx_id' => $request->input('customer_id'),
+                    'balance_amount' => $request->input('balance_amount'),
+                    'paid_amount' => $request->input('paid_amount'),
+                    'total_amount' => $request->input('totamount'),
                 ]);
             }
 
@@ -237,6 +243,9 @@ class FullCartCheckoutController extends Controller
             'delivery_date' => null,
             'delivery_address' => null,
             'cx_id' => $request->input('user_id'),
+            'balance_amount' => 0.00,
+            'paid_amount' => $request->input('totamount'),
+            'total_amount' => $request->input('totamount'),
         ]);
 
         return response()->json([
@@ -281,6 +290,9 @@ class FullCartCheckoutController extends Controller
             'delivery_date' => null,
             'delivery_address' => null,
             'cx_id' => $user_id,
+            'balance_amount' => 0.00,
+            'paid_amount' => $request->input('totamount'),
+            'total_amount' => $request->input('totamount'),
         ]);
 
         return response()->json([

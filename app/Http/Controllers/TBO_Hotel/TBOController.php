@@ -463,6 +463,9 @@ class TBOController extends Controller
             'delivery_date' => null,
             'delivery_address' => null,
             'cx_id' => $userID,
+            'balance_amount' => 0.00,
+            'paid_amount' =>  $total_price,
+            'total_amount' =>  $total_price
         ]);
     }
 
